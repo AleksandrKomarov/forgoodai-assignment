@@ -97,14 +97,17 @@ Primary personas:
 ```
 +---------------------------+   +------------------------------+   +----------------------------+
 |  Agent Execution Platform |   |  Platform Admin API          |   |  Billing System            |
-|  Publishes:               |   |  (external; source of truth  |   |  (external; owns pricing   |
-|  run.started              |   |   for tenant/user/team data) |   |   logic and cost calc)     |
+|  Publishes:               |   |  (external; source of truth  |   |  (external; owns pricing,  |
+|  run.started              |   |   for tenant/user/team data) |   |   cost calc, and budgets)  |
 |  run.completed            |   |                              |   |                            |
 |  run.failed               |   |  Emits events / webhooks     |   |  Publishes:                |
 |  Partition key: run_id    |   |                              |   |  run.priced                |
 +-------------+-------------+   +---------------+--------------+   |  Partition key: run_id     |
-              | JSON events over AMQP            |                 +-------------+--------------+
-              v                                  | events /                      |
+              | JSON events over AMQP           |                  |                            |
+              |                                 |                  |  Budget API:               |
+              |                                 |                  |  GET /tenants/{id}/budget  |
+              |                                 |                  +-------------+--------------+
+              v                                 v events /                       |
 +------------------------------------------+----+ webhooks                       |
 |   Azure Event Hubs                            |<-------------------------------+
 |   Single namespace, partition key=run_id      |  run.priced events over AMQP
@@ -171,6 +174,9 @@ Primary personas:
 |   - RBAC claim injection into KQL predicates                |
 |   - Result caching: Azure Cache for Redis                   |
 |     (60s real-time widgets, 5min trend queries)             |
+|   - Display name resolution via Microsoft Graph API         |
+|     (maps user_id/team_id UUIDs -> names at query time)     |
+|   - Budget data from Billing System API                     |
 +----------------------+--------------------------------------+
                        |
                        v
@@ -195,6 +201,12 @@ Primary personas:
 |       user_id: uuid, agent_type, agent_version,             |
 |       trigger, started_at }                                 |
 |     TTL: 24h (auto-expires orphaned started events)         |
+|                                                             |
+|   Container: tenant-budgets (cache)                         |
+|     { tenant_id: uuid, period: "2025-03",                   |
+|       budget_usd: 45000, updated_at }                       |
+|     Partition key: tenant_id                                |
+|     Synced from Billing System API                          |
 +-------------------------------------------------------------+
 
 
@@ -362,8 +374,10 @@ physical partition, ensuring even load distribution.)
 
 4. **No PII in the analytics pipeline:** All identifiers are opaque UUIDs. No email addresses,
    no org slugs, no display names enter Event Hubs, ADLS Gen2, or ADX. Display names for the
-   dashboard UI are resolved at query time by the API layer from a separate identity service,
-   not stored in the analytics data.
+   dashboard UI are resolved at query time by the API layer via **Microsoft Graph API** — the
+   API maps `user_id` (Entra ID `oid`) and team group IDs to display names on every response.
+   Names are cached in Redis (TTL: 15 min) to avoid per-request Graph calls. No PII is stored
+   in the analytics data.
 
 5. **Event Hubs Capture for raw archive:** The built-in Capture feature writes every raw event
    to ADLS Gen2 as Parquet automatically — no code, no separate pipeline. Queryable on-demand via
@@ -375,7 +389,13 @@ physical partition, ensuring even load distribution.)
    queries hit rollup tables for trend/range queries and the raw tables only for short windows
    (< 24h), keeping all queries fast.
 
-7. **Billing system decoupled from analytics:** Pricing is owned by an external Billing System
+7. **Budget data from Billing System:** Monthly budgets per tenant are owned by the Billing
+   System (where admins set them). The Analytics API layer fetches the current period's budget
+   from the Billing System API and caches it in a `tenant-budgets` Cosmos container (synced
+   periodically). Actual spend from cost rollup tables is compared against the budget to power
+   the budget burn rate widget and over/under-budget indicators.
+
+8. **Billing system decoupled from analytics:** Pricing is owned by an external Billing System
    that publishes `run.priced` events with the final cost per run. The analytics pipeline stores
    cost in a separate `RunCosts` ADX table, keeping run analytics (latency, success rates, etc.)
    immediately available without waiting for pricing. Dashboard cost views join `AgentRuns` +
