@@ -6,9 +6,8 @@ Engineers use a cloud platform to run AI/automation agents. As adoption grows, o
 visibility into how their teams use agents — to control costs, improve reliability,
 and make resourcing decisions. This dashboard is the primary interface for that visibility.
 
-All infrastructure uses Azure-native services. Azure Stream Analytics is intentionally excluded —
-enrichment and correlation are handled by Azure Functions, and aggregations are pushed into ADX via
-update policies, keeping the pipeline simpler and more maintainable.
+All infrastructure uses Azure-native services. Enrichment and correlation are handled by Azure
+Functions, and aggregations are pushed into ADX via update policies.
 
 Identifiers are opaque UUIDs throughout; no email addresses or human-readable org slugs enter the
 analytics pipeline, keeping PII out of the data store.
@@ -40,7 +39,6 @@ Primary personas:
 | Success rate (by agent type, team, time) | Product health |
 | Failure rate + error breakdown (timeout, OOM, logic errors, infra faults) | Debuggability |
 | p50 / p95 / p99 latency | User-facing SLA tracking |
-
 | Long-tail run detection (runs > Nx avg duration) | Runaway agent detection |
 
 ### 3. Usage Patterns & Adoption
@@ -55,7 +53,6 @@ Primary personas:
 ### 4. Operational & Governance
 | Metric | Why it matters |
 |---|---|
-| Quota utilization (% of tenant limit consumed) | Prevents surprise overages |
 | Failed runs requiring human intervention | Toil measurement |
 | Agent version distribution (old vs. current) | Deprecation / migration health |
 
@@ -98,25 +95,25 @@ Primary personas:
 ## Azure-Native System Architecture
 
 ```
-+---------------------------+   +------------------------------+
-|  Agent Execution Platform  |   |  Platform Admin API          |
-|  Publishes:               |   |  (external; source of truth  |
-|  run.started              |   |   for tenant/user/team/       |
-|  run.completed            |   |   pricing data)              |
-|  run.failed               |   |                              |
-|  Partition key: run_id    |   |  Emits events / webhooks     |
-+-------------+-------------+   +---------------+--------------+
-              | JSON events over AMQP            | events / webhooks
-              v                                  v
-+------------------------------------------+----+
-|   Azure Event Hubs                            |
-|   Single namespace, partition key=run_id      |
++---------------------------+   +------------------------------+   +----------------------------+
+|  Agent Execution Platform |   |  Platform Admin API          |   |  Billing System            |
+|  Publishes:               |   |  (external; source of truth  |   |  (external; owns pricing   |
+|  run.started              |   |   for tenant/user/team data) |   |   logic and cost calc)     |
+|  run.completed            |   |                              |   |                            |
+|  run.failed               |   |  Emits events / webhooks     |   |  Publishes:                |
+|  Partition key: run_id    |   |                              |   |  run.priced                |
++-------------+-------------+   +---------------+--------------+   |  Partition key: run_id     |
+              | JSON events over AMQP            |                 +-------------+--------------+
+              v                                  | events /                      |
++------------------------------------------+----+ webhooks                       |
+|   Azure Event Hubs                            |<-------------------------------+
+|   Single namespace, partition key=run_id      |  run.priced events over AMQP
 |   Retention: 7 days                           |
 |   Throughput units: auto-inflate              |
 +--------+------------------+-------------------+
          |                  |
-         | Event Hubs        | Azure Functions
-         | Capture           | Event Hub trigger
+         | Event Hubs       | Azure Functions
+         | Capture          | Event Hub trigger
          v                  v
 +-----------------+  +------------------------------------------+
 |  ADLS Gen2      |  |   Enrichment Function App                |
@@ -130,14 +127,16 @@ Primary personas:
 |  Retention:     |  |   On run.completed / run.failed:         |
 |  2 years        |  |   - Fetch correlation state by run_id    |
 |  Queryable via  |  |   - Merge started + outcome fields       |
-|  Synapse        |  |   - Calculate cost_usd from tokens +     |
-|  Serverless SQL |  |     compute + pricing config (Cosmos DB) |
-|  for ad-hoc     |  |   - Write enriched AgentRun to ADX       |
-|  queries        |  |   - Correlation state expires via TTL    |
+|  Synapse        |  |   - Write enriched AgentRun to ADX       |
+|  Serverless SQL |  |   - Correlation state expires via TTL    |
+|  for ad-hoc     |  |                                          |
+|  queries        |  |   On run.priced (from Billing System):   |
+|                 |  |   - Fetch tenant_id + team_id from       |
+|                 |  |     run-correlation by run_id            |
+|                 |  |   - Write RunCost record to ADX          |
 |                 |  |                                          |
 |                 |  |   On admin events from Platform API:     |
 |                 |  |   - Sync user-team-map in Cosmos DB      |
-|                 |  |   - Sync pricing-config in Cosmos DB     |
 +-----------------+  +--------------------+---------------------+
                                           |
                                           v
@@ -145,12 +144,18 @@ Primary personas:
 |   Azure Data Explorer (ADX / Kusto)                         |
 |                                                             |
 |   Tables:                                                   |
-|   - AgentRuns        fully enriched run records, 90d hot   |
-|   - HourlyRollup     update policy on AgentRuns ingestion  |
-|   - DailyRollup      update policy, retained 2 years       |
+|   - AgentRuns           enriched run records, 90d hot       |
+|   - RunCosts            cost per run from Billing System    |
+|   - HourlyRollup        update policy on AgentRuns          |
+|   - DailyRollup         update policy, retained 2 years     |
+|   - HourlyCostRollup    update policy on RunCosts           |
+|   - DailyCostRollup     update policy, retained 2 years     |
 |                                                             |
-|   ADX update policies auto-populate rollup tables on       |
-|   every AgentRuns ingestion — no scheduled jobs needed      |
+|   Stored function: AgentRunsWithCost()                      |
+|   - Joins AgentRuns + RunCosts on run_id for cost views     |
+|                                                             |
+|   ADX update policies auto-populate rollup tables on        |
+|   every AgentRuns / RunCosts ingestion — no scheduled jobs  |
 +----------------------+--------------------------------------+
                        |  KQL
                        v
@@ -182,40 +187,33 @@ Primary personas:
 |   Azure Cosmos DB (NoSQL)                                   |
 |                                                             |
 |   Container: user-team-map                                  |
-|     { user_id: uuid, tenant_id: uuid, team_id: uuid }      |
+|     { user_id: uuid, tenant_id: uuid, team_id: uuid }       |
 |     Synced by Enrichment Function from Platform Admin API   |
 |                                                             |
 |   Container: run-correlation                                |
-|     { run_id: uuid, tenant_id: uuid, team_id: uuid,        |
+|     { run_id: uuid, tenant_id: uuid, team_id: uuid,         |
 |       user_id: uuid, agent_type, agent_version,             |
 |       trigger, started_at }                                 |
 |     TTL: 24h (auto-expires orphaned started events)         |
-|                                                             |
-|   Container: pricing-config                                 |
-|     { tenant_id: uuid, effective_from,                     |
-|       cpu_per_second_usd, token_input_per_1k_usd,          |
-|       token_output_per_1k_usd }                             |
-|     Synced by Enrichment Function from Platform Admin API   |
-|     Versioned — historical runs calculated at correct price |
 +-------------------------------------------------------------+
 
 
 +-------------------------------------------------------------+
 |   Azure Entra ID                                            |
 |                                                             |
-|   Multi-tenant app registration (signInAudience:           |
-|   AzureADMultipleOrgs) — accepts tokens from any Azure AD  |
-|   organization. One app registration serves all tenants.   |
+|   Multi-tenant app registration (signInAudience:            |
+|   AzureADMultipleOrgs) — accepts tokens from any Azure AD   |
+|   organization. One app registration serves all tenants.    |
 |                                                             |
-|   App roles: TenantAdmin, TeamLead, Contributor, Finance   |
+|   App roles: TenantAdmin, TeamLead, Contributor, Finance    |
 |   Assigned per customer tenant via Enterprise Applications  |
 |                                                             |
-|   JWT claims used directly as platform identifiers:        |
-|   - oid (Object ID, UUID) -> user_id in events             |
-|   - tid (Tenant ID, UUID) -> tenant_id in events           |
+|   JWT claims used directly as platform identifiers:         |
+|   - oid (Object ID, UUID) -> user_id in events              |
+|   - tid (Tenant ID, UUID) -> tenant_id in events            |
 |                                                             |
-|   JWT validated by API Management (validate-jwt policy)    |
-|   -> claims forwarded to App Service for KQL scoping       |
+|   JWT validated by API Management (validate-jwt policy)     |
+|   -> claims forwarded to App Service for KQL scoping        |
 +-------------------------------------------------------------+
 ```
 
@@ -223,13 +221,16 @@ Primary personas:
 
 ## Event Schemas
 
-Events are published by the Agent Execution Platform. `run_id` is the correlation key.
+Run lifecycle events (`run.started`, `run.completed`, `run.failed`) are published by the
+Agent Execution Platform. Cost events (`run.priced`) are published by the Billing System.
+`run_id` is the correlation key across all event types.
 All identifiers are opaque UUIDs — no email addresses or human-readable slugs.
 
-All three event types use the same Event Hubs namespace, partitioned by `run_id` to
-guarantee ordering: `run.started` always arrives before `run.completed`/`run.failed`
-within the same partition. (Partition key is hashed to a fixed partition slot — many
-`run_id` values share each physical partition, ensuring even load distribution.)
+All event types use the same Event Hubs namespace, partitioned by `run_id` to guarantee
+ordering: `run.started` always arrives before `run.completed`/`run.failed` within the
+same partition. `run.priced` may arrive after the terminal event (billing is async).
+(Partition key is hashed to a fixed partition slot — many `run_id` values share each
+physical partition, ensuring even load distribution.)
 
 ```jsonc
 // run.started — published when a run is accepted and begins executing
@@ -284,6 +285,19 @@ within the same partition. (Partition key is hashed to a fixed partition slot �
     "model": "claude-sonnet-4-6"
   }
 }
+
+// run.priced — published by Billing System after pricing a completed or failed run
+{
+  "event_type": "run.priced",
+  "event_id": "uuid",
+  "run_id": "uuid",                // correlates to run.started
+  "cost_usd": 0.043,
+  "cost_breakdown": {
+    "compute_usd": 0.012,
+    "token_usd": 0.031
+  },
+  "priced_at": "2025-03-01T10:01:00Z"
+}
 ```
 
 ### Enriched AgentRun record written to ADX by Function App
@@ -306,10 +320,24 @@ within the same partition. (Partition key is hashed to a fixed partition slot �
   "error_code": null,              // set on failure
   "error_message": null,
   "compute": { "cpu_seconds": 12.4, "memory_gb_seconds": 3.1, "gpu_seconds": 0 },
-  "tokens": { "input": 14200, "output": 3100, "model": "claude-sonnet-4-6" },
-  // Calculated by Function using pricing-config
+  "tokens": { "input": 14200, "output": 3100, "model": "claude-sonnet-4-6" }
+  // No cost — cost data lives in RunCosts table, joined via run_id
+}
+```
+
+### RunCost record written to ADX by Function App (from run.priced)
+
+```jsonc
+{
+  "run_id": "uuid",                // correlates to AgentRuns record
+  "tenant_id": "uuid",            // from run-correlation Cosmos container
+  "team_id": "uuid",              // from run-correlation Cosmos container
   "cost_usd": 0.043,
-  "pricing_config_version": "2025-01"  // for historical audit accuracy
+  "cost_breakdown": {
+    "compute_usd": 0.012,
+    "token_usd": 0.031
+  },
+  "priced_at": "2025-03-01T10:01:00Z"
 }
 ```
 
@@ -317,9 +345,9 @@ within the same partition. (Partition key is hashed to a fixed partition slot �
 
 ## Key Design Decisions
 
-1. **Azure Functions replaces Stream Analytics:** Functions handle all stateless per-event
-   enrichment. Windowed aggregations are pushed into ADX via update policies, which is where
-   the data lives anyway. This removes a managed streaming service from the stack.
+1. **Azure Functions for per-event enrichment:** Functions handle all stateless per-event
+   enrichment. Windowed aggregations are pushed into ADX via update policies, keeping the
+   architecture simple with no separate streaming service.
 
 2. **Cosmos DB as correlation store (run-correlation container):** Since `run.started` carries
    identity context and `run.completed`/`run.failed` carry outcome/resource data, the Function
@@ -342,20 +370,30 @@ within the same partition. (Partition key is hashed to a fixed partition slot �
    Synapse Serverless SQL for ad-hoc queries without a permanent always-on cluster.
 
 6. **ADX update policies for rollups:** Pre-aggregated HourlyRollup and DailyRollup tables are
-   populated automatically on every AgentRuns ingestion via KQL update policies. Dashboard
-   queries hit rollup tables for trend/range queries and the raw AgentRuns table only for
-   short windows (< 24h), keeping all queries fast.
+   populated automatically on every AgentRuns ingestion via KQL update policies; separate
+   HourlyCostRollup and DailyCostRollup tables are populated on RunCosts ingestion. Dashboard
+   queries hit rollup tables for trend/range queries and the raw tables only for short windows
+   (< 24h), keeping all queries fast.
 
-7. **Pricing config versioned in Cosmos DB:** `pricing-config` records carry an `effective_from`
-   date. The Function looks up the active version at event time and stamps `pricing_config_version`
-   on the ADX record, so historical cost calculations remain accurate after price changes.
+7. **Billing system decoupled from analytics:** Pricing is owned by an external Billing System
+   that publishes `run.priced` events with the final cost per run. The analytics pipeline stores
+   cost in a separate `RunCosts` ADX table, keeping run analytics (latency, success rates, etc.)
+   immediately available without waiting for pricing. Dashboard cost views join `AgentRuns` +
+   `RunCosts` via a stored function. This separation means pricing logic, rate changes, and
+   billing corrections are handled entirely outside the analytics pipeline.
 
 ---
 
 ## Verification / Testing Approach
 
 - Publish synthetic events (run.started -> run.completed, run.started -> run.failed) to Event Hubs
-  and verify AgentRuns records in ADX contain correct merged fields and enriched team_id
+  and verify AgentRuns records in ADX contain correct merged fields, enriched team_id, and no cost fields
+- Publish synthetic run.priced events and verify RunCosts records in ADX contain correct cost_usd,
+  cost_breakdown, and tenant_id/team_id (looked up from run-correlation by run_id)
+- Verify late-arriving run.priced events: publish a run.priced event minutes after the terminal event
+  and confirm the RunCost record is still written correctly (run-correlation state within 24h TTL)
+- Verify dashboard cost views correctly join AgentRuns + RunCosts; runs without a matching RunCost
+  record should appear with null cost, not be excluded
 - Verify Cosmos DB run-correlation TTL: orphaned run.started records (no terminal event) expire
   and do not remain in the store permanently
 - Verify user-team-map lookup: change a user's team and confirm subsequent runs report the new team
