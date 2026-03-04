@@ -11,7 +11,7 @@ const DRIVER_COLORS: Record<string, string> = {
   other: "#94a3b8",
 };
 
-const CIRCUMFERENCE = 2 * Math.PI * 70;
+const CIRCUMFERENCE = 2 * Math.PI * 85;
 
 export default function SpendBreakdownDonut() {
   const { start, end } = useDateRange();
@@ -35,39 +35,39 @@ export default function SpendBreakdownDonut() {
       className="card"
       refetch={refetch}
     >
-      <div className="card">
+      <div className="card" style={{ display: "flex", flexDirection: "column" }}>
         <div className="card-title">Spend Breakdown by Cost Driver</div>
-        <div className="donut-container">
-          <svg viewBox="0 0 180 180" width="180" height="180">
+        <div className="donut-container" style={{ flex: 1 }}>
+          <svg viewBox="0 0 220 220" width="220" height="220">
             {arcs.map((arc) => (
               <circle
                 key={arc.driver}
-                cx="90"
-                cy="90"
-                r="70"
+                cx="110"
+                cy="110"
+                r="85"
                 fill="none"
                 stroke={DRIVER_COLORS[arc.driver] ?? "#94a3b8"}
-                strokeWidth="28"
+                strokeWidth="32"
                 strokeDasharray={`${arc.arcLength} ${CIRCUMFERENCE}`}
                 strokeDashoffset={arc.offset}
-                transform="rotate(-90 90 90)"
+                transform="rotate(-90 110 110)"
               />
             ))}
             <text
-              x="90"
-              y="85"
+              x="110"
+              y="106"
               textAnchor="middle"
-              fontSize="22"
+              fontSize="24"
               fontWeight="700"
               fill="var(--text)"
             >
               {data && formatCurrencyCompact(data.total_usd)}
             </text>
             <text
-              x="90"
-              y="103"
+              x="110"
+              y="126"
               textAnchor="middle"
-              fontSize="11"
+              fontSize="12"
               fill="var(--text2)"
             >
               total spend

@@ -190,7 +190,7 @@ body {
 /* Donut Container */
 .donut-container {
   display: flex; align-items: center; justify-content: center;
-  gap: 32px; padding: 24px 16px;
+  gap: 32px; padding: 32px 16px;
 }
 
 /* Chart Legend */

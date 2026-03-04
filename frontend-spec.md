@@ -243,12 +243,12 @@ Changing dimension or granularity re-fetches `daily-spend` only.
 | p95 Latency KPI | `latency-kpi` | KPI card |
 | p99 Latency KPI | `latency-kpi` | KPI card |
 | Success/Failure Chart | `success-failure-timeseries` | Stacked bar (green success, red failed) |
-| Error Taxonomy | `error-taxonomy` | Treemap (proportional blocks, color-coded) |
+| Error Taxonomy | `error-taxonomy` | Pie chart (proportional slices, color-coded) |
 | Latency Distribution | `latency-distribution` | Overlapping bars (p99 back/lightest, p50 front/darkest) |
 | Slowest Agents | `slowest-agents` | Table |
 | Failure Hotspots | `failure-hotspots` | Table as matrix (agent rows x team columns, color-coded rates) |
 
-Layout: 4-column KPI row, full-width success/failure chart, 1:1 grid (treemap + latency),
+Layout: 4-column KPI row, full-width success/failure chart, 1:1 grid (error taxonomy pie + latency),
 1:1 grid (slowest agents table + failure hotspots matrix).
 
 **90-day limit:** The `latency-kpi` endpoint requires ≤ 90-day range. When the selected range
@@ -309,7 +309,7 @@ date range). Team-scoped endpoints re-fetch on both team selection and date rang
 | Stacked bar | Daily Spend, Success/Failure | Color-coded series with legend |
 | Horizontal bar | Run Volume by Team | Labels left, values right |
 | Donut | Spend Breakdown | Center label shows total |
-| Treemap | Error Taxonomy | Proportional rectangles, labeled with code + percentage |
+| Pie chart | Error Taxonomy | Proportional slices with legend showing code + percentage |
 | Heatmap | Runs by hour/day | 7x24 grid, color intensity maps to run count |
 | Gauge | Success Rate | SVG arc (green fill proportional to rate) |
 | Sparkline | Run Volume (Executive) | Minimal bars, no axes or labels |

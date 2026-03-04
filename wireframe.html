@@ -151,6 +151,12 @@
   .pill-nav { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
   .pill-nav button { padding: 6px 14px; border-radius: 20px; border: 1px solid var(--border); background: var(--surface); font-size: 12px; cursor: pointer; font-weight: 500; }
   .pill-nav button.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  /* Donut / Pie */
+  .donut-container { display: flex; align-items: center; justify-content: center; gap: 32px; padding: 24px 16px; }
+  .donut-legend { display: flex; flex-direction: column; gap: 4px; font-size: 14px; line-height: 2.2; }
+  .donut-legend-row { display: flex; align-items: center; gap: 8px; }
+  .legend-dot { display: inline-block; width: 12px; height: 12px; border-radius: 2px; vertical-align: middle; }
 </style>
 </head>
 <body>
@@ -333,18 +339,18 @@
 
     <div class="grid-2">
       <!-- Pie: cost breakdown -->
-      <div class="card">
+      <div class="card" style="display:flex;flex-direction:column">
         <div class="card-title">Spend Breakdown by Cost Driver</div>
-        <div style="display:flex;align-items:center;justify-content:center;gap:32px;padding:24px 16px">
-          <svg width="180" height="180" viewBox="0 0 180 180">
-            <circle cx="90" cy="90" r="70" fill="none" stroke="#4361ee" stroke-width="28" stroke-dasharray="281 440" stroke-dashoffset="0"/>
-            <circle cx="90" cy="90" r="70" fill="none" stroke="#22c55e" stroke-width="28" stroke-dasharray="114 440" stroke-dashoffset="-281"/>
-            <circle cx="90" cy="90" r="70" fill="none" stroke="#f59e0b" stroke-width="28" stroke-dasharray="31 440" stroke-dashoffset="-395"/>
-            <circle cx="90" cy="90" r="70" fill="none" stroke="#8b5cf6" stroke-width="28" stroke-dasharray="14 440" stroke-dashoffset="-426"/>
-            <text x="90" y="86" text-anchor="middle" font-size="22" font-weight="700" fill="#1a1d23">$47.2K</text>
-            <text x="90" y="104" text-anchor="middle" font-size="11" fill="#5f6577">total spend</text>
+        <div style="display:flex;align-items:center;justify-content:center;gap:32px;padding:32px 16px;flex:1">
+          <svg width="220" height="220" viewBox="0 0 220 220">
+            <circle cx="110" cy="110" r="85" fill="none" stroke="#4361ee" stroke-width="32" stroke-dasharray="342 534" stroke-dashoffset="0"/>
+            <circle cx="110" cy="110" r="85" fill="none" stroke="#22c55e" stroke-width="32" stroke-dasharray="139 534" stroke-dashoffset="-342"/>
+            <circle cx="110" cy="110" r="85" fill="none" stroke="#f59e0b" stroke-width="32" stroke-dasharray="37 534" stroke-dashoffset="-481"/>
+            <circle cx="110" cy="110" r="85" fill="none" stroke="#8b5cf6" stroke-width="32" stroke-dasharray="16 534" stroke-dashoffset="-518"/>
+            <text x="110" y="106" text-anchor="middle" font-size="24" font-weight="700" fill="#1a1d23">$47.2K</text>
+            <text x="110" y="126" text-anchor="middle" font-size="12" fill="#5f6577">total spend</text>
           </svg>
-          <div style="font-size:14px;line-height:2.2">
+          <div style="font-size:14px;line-height:2.4">
             <div><span style="color:var(--accent)">&#9632;</span> Tokens — 64% ($30.1K)</div>
             <div><span style="color:var(--green)">&#9632;</span> Compute — 26% ($12.3K)</div>
             <div><span style="color:var(--orange)">&#9632;</span> Storage — 7% ($3.3K)</div>
@@ -425,22 +431,43 @@
     </div>
 
     <div class="grid-2">
-      <!-- Error taxonomy treemap -->
+      <!-- Error taxonomy pie chart -->
       <div class="card">
         <div class="card-title">Error Taxonomy</div>
-        <div class="treemap">
-          <div class="treemap-cell" style="background:#ef4444;grid-row:span 2">CONTEXT_LIMIT<br>38%</div>
-          <div class="treemap-cell" style="background:#f97316">TIMEOUT<br>24%</div>
-          <div class="treemap-cell" style="background:#f59e0b">OOM<br>18%</div>
-          <div class="treemap-cell" style="background:#fb923c">LOGIC_ERR<br>12%</div>
-          <div class="treemap-cell" style="background:#fbbf24">INFRA<br>8%</div>
+        <div class="donut-container">
+          <svg viewBox="0 0 180 180" width="180" height="180">
+            <!-- CONTEXT_LIMIT 38% -->
+            <circle cx="90" cy="90" r="70" fill="none" stroke="#ef4444" stroke-width="28"
+              stroke-dasharray="167.1 439.8" stroke-dashoffset="0" transform="rotate(-90 90 90)"/>
+            <!-- TIMEOUT 24% -->
+            <circle cx="90" cy="90" r="70" fill="none" stroke="#f97316" stroke-width="28"
+              stroke-dasharray="105.6 439.8" stroke-dashoffset="-167.1" transform="rotate(-90 90 90)"/>
+            <!-- OOM 18% -->
+            <circle cx="90" cy="90" r="70" fill="none" stroke="#f59e0b" stroke-width="28"
+              stroke-dasharray="79.2 439.8" stroke-dashoffset="-272.7" transform="rotate(-90 90 90)"/>
+            <!-- LOGIC_ERR 12% -->
+            <circle cx="90" cy="90" r="70" fill="none" stroke="#fb923c" stroke-width="28"
+              stroke-dasharray="52.8 439.8" stroke-dashoffset="-351.8" transform="rotate(-90 90 90)"/>
+            <!-- INFRA 8% -->
+            <circle cx="90" cy="90" r="70" fill="none" stroke="#fbbf24" stroke-width="28"
+              stroke-dasharray="35.2 439.8" stroke-dashoffset="-404.6" transform="rotate(-90 90 90)"/>
+            <text x="90" y="85" text-anchor="middle" font-size="22" font-weight="700" fill="var(--text)">1,130</text>
+            <text x="90" y="103" text-anchor="middle" font-size="11" fill="var(--text2)">failures</text>
+          </svg>
+          <div class="donut-legend">
+            <div class="donut-legend-row"><span class="legend-dot" style="background:#ef4444"></span> CONTEXT_LIMIT — 38% (429)</div>
+            <div class="donut-legend-row"><span class="legend-dot" style="background:#f97316"></span> TIMEOUT — 24% (271)</div>
+            <div class="donut-legend-row"><span class="legend-dot" style="background:#f59e0b"></span> OOM — 18% (203)</div>
+            <div class="donut-legend-row"><span class="legend-dot" style="background:#fb923c"></span> LOGIC_ERR — 12% (136)</div>
+            <div class="donut-legend-row"><span class="legend-dot" style="background:#fbbf24"></span> INFRA — 8% (91)</div>
+          </div>
         </div>
       </div>
 
       <!-- Latency distribution — overlapping bars: p99 behind (tallest), p50 front (shortest) -->
       <div class="card">
         <div class="card-title">Latency Distribution (p50 / p95 / p99)</div>
-        <div style="display:flex;align-items:flex-end;gap:12px;height:140px;padding:0 8px" id="latency-chart"></div>
+        <div style="display:flex;align-items:flex-end;gap:12px;height:200px;padding:0 8px" id="latency-chart"></div>
         <div style="display:flex;gap:16px;justify-content:center;margin-top:8px;font-size:11px;color:var(--text2)">
           <span><span style="color:var(--accent)">&#9632;</span> p50</span>
           <span><span style="color:rgba(67,97,238,0.45)">&#9632;</span> p95</span>

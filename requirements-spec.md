@@ -196,12 +196,12 @@ Limited to 90-day range — shows an inline warning when the selected range exce
 - Red portion: failed runs
 - Tooltip shows counts and failure rate per day
 
-### Error Taxonomy (Treemap)
+### Error Taxonomy (Pie Chart)
 
-- Treemap visualization of failure categories
+- Pie chart visualization of failure categories
 - Categories: CONTEXT_LIMIT_EXCEEDED, TIMEOUT, OOM, LOGIC_ERROR, INFRA_FAULT, etc.
-- Size proportional to occurrence count
-- Each block labeled with error code and percentage of total failures
+- Slice size proportional to occurrence count
+- Legend with error code, percentage, and count for each category
 
 ### Latency Distribution Chart
 

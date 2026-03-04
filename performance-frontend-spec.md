@@ -26,7 +26,7 @@ PerformanceView
   |     data: useSuccessFailureTimeseries(start, end)
   |
   +-- MiddleRow                           (grid-2)
-  |     +-- ErrorTaxonomyTreemap           data: useErrorTaxonomy(start, end)
+  |     +-- ErrorTaxonomyPie               data: useErrorTaxonomy(start, end)
   |     +-- LatencyDistributionChart       data: useLatencyDistribution(start, end)
   |
   +-- BottomRow                           (grid-2)
@@ -43,7 +43,7 @@ same hook used by Executive Summary — TanStack Query deduplicates identical qu
 
 - **KPI row:** `.kpi-row` — 4 equal columns
 - **Success/Failure chart:** full-width `card`
-- **Middle row:** `.grid-2` — left: treemap, right: latency distribution
+- **Middle row:** `.grid-2` — left: error taxonomy pie, right: latency distribution
 - **Bottom row:** `.grid-2` — left: slowest agents table, right: failure hotspots matrix
 
 ---
@@ -269,33 +269,19 @@ const maxRuns = Math.max(...daily.map(d => d.completed + d.failed));
 
 ---
 
-### 6. Error Taxonomy Treemap
+### 6. Error Taxonomy Pie Chart
 
 **Data source:** `useErrorTaxonomy(start, end)`
 
 **Card title:** `ERROR TAXONOMY`
 
-CSS grid treemap showing failure categories. Height: `180px`.
+SVG pie chart showing failure categories with a right-side legend. Uses `.donut-container` layout.
 
-**Grid layout:**
+**SVG donut:** 180×180px viewBox, center (90,90), radius 70, stroke-width 28. Each slice is a
+`<circle>` with `stroke-dasharray` and `stroke-dashoffset` (same technique as the Spend
+Breakdown donut).
 
-```css
-.treemap {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
-  grid-template-rows: 2fr 1fr;
-  gap: 4px;
-  height: 180px;
-}
-```
-
-The first cell (largest error) spans 2 rows (`grid-row: span 2`). Remaining cells fill the
-2×2 right side.
-
-**Cell styling:** `border-radius: 6px`, white text, centered content. Each cell shows:
-`{ERROR_CODE}\n{pct}%`.
-
-**Treemap colors:** Assigned by index (highest count → most prominent color):
+**Slice colors:** Assigned by index (highest count → most prominent color):
 
 | Index | Color |
 |-------|-------|
@@ -304,6 +290,12 @@ The first cell (largest error) spans 2 rows (`grid-row: span 2`). Remaining cell
 | 2 | `#f59e0b` (amber) |
 | 3 | `#fb923c` (light orange) |
 | 4 | `#fbbf24` (yellow) |
+
+**Center text:** `{total_failures}` (font-size 22, font-weight 700) with subtitle `"failures"`
+(font-size 11, color `var(--text2)`).
+
+**Legend (right side):** Uses `.donut-legend`. Each row:
+`{ERROR_CODE} — {pct}% ({count})`.
 
 **Empty state:** When `total_failures === 0`, show "No failures in selected period".
 
