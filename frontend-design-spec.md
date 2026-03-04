@@ -1,28 +1,26 @@
 # Frontend Design Spec: Shared Styles & Utilities
 
-All CSS component styles, layout primitives, formatting functions, the widget state machine,
-and the HTTP client used across every view.
+Visual appearance, layout primitives, delta color rules, and the widget state machine
+used across every view.
 
 ---
 
 ## Design Tokens
 
-```css
-:root {
-  --bg: #f5f6fa;
-  --surface: #fff;
-  --border: #e2e5ec;
-  --text: #1a1d23;
-  --text2: #5f6577;
-  --accent: #4361ee;
-  --accent-light: #eef1ff;
-  --green: #22c55e;
-  --red: #ef4444;
-  --orange: #f59e0b;
-  --sidebar-w: 220px;
-  --header-h: 56px;
-}
-```
+| Token | Value | Usage |
+|-------|-------|-------|
+| `--bg` | `#f5f6fa` | Page background |
+| `--surface` | `#fff` | Card / panel background |
+| `--border` | `#e2e5ec` | Borders and dividers |
+| `--text` | `#1a1d23` | Primary text |
+| `--text2` | `#5f6577` | Secondary / muted text |
+| `--accent` | `#4361ee` | Interactive elements, charts |
+| `--accent-light` | `#eef1ff` | Hover highlights |
+| `--green` | `#22c55e` | Positive / success |
+| `--red` | `#ef4444` | Negative / error |
+| `--orange` | `#f59e0b` | Warning |
+| `--sidebar-w` | `220px` | Sidebar width |
+| `--header-h` | `56px` | Header height |
 
 Additional hardcoded colors used in specific charts:
 
@@ -35,61 +33,49 @@ Additional hardcoded colors used in specific charts:
 
 ## Typography
 
-```css
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  font-size: 14px;
-  color: var(--text);
-  background: var(--bg);
-}
-```
+System font stack (system-ui, Segoe UI, Roboto, sans-serif). Base size 14px,
+primary text color on a light gray page background.
 
 ---
 
 ## Layout Primitives
 
+### Date Range Selector
+
+Horizontal row of controls (select + date inputs) with small gaps. Inputs and selects have a
+light border, 6px rounded corners, 13px text, and a gray background.
+
+When the "Custom range" preset is selected, two `<input type="date">` fields appear inline
+next to the dropdown for start and end date selection. Both inputs allow free selection within
+the absolute bounds (earliest: 2 years ago, latest: today). Inline validation errors appear
+when the range is invalid:
+- "Both dates are required" — if either date is empty
+- "End date must be after start date" — if end < start
+- "Range cannot exceed 365 days" — if span > 365 days (backend limit)
+
+Invalid ranges are not propagated to the context — widgets continue showing the last valid range
+until the user corrects the selection.
+
+Some widgets (latency KPIs, concurrency chart, run heatmap) are limited to 90-day ranges.
+When the selected range exceeds this, those widgets show an inline warning while other widgets
+continue to display data normally.
+
 ### Content Area
 
-```css
-.main {
-  margin-left: var(--sidebar-w);
-  margin-top: var(--header-h);
-  padding: 24px;
-}
-```
+Main content is offset to the right of the sidebar and below the header, with 24px padding
+on all sides.
 
 ### KPI Row (4-column)
 
-```css
-.kpi-row {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-bottom: 16px;
-}
-```
+Four equal-width columns in a grid with 16px gap.
 
 ### 2:1 Grid
 
-```css
-.grid-2-1 {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 16px;
-  margin-bottom: 16px;
-}
-```
+Two-thirds / one-third column split with 16px gap.
 
 ### 1:1 Grid
 
-```css
-.grid-2 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-bottom: 16px;
-}
-```
+Two equal columns with 16px gap.
 
 ---
 
@@ -97,259 +83,78 @@ body {
 
 ### Card
 
-```css
-.card {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 20px;
-  margin-bottom: 16px;
-}
-.card-title {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text2);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  margin-bottom: 14px;
-}
-```
+White surface with a light border, 10px border-radius, and 20px padding. The card title is
+small (13px), bold, uppercase, secondary-colored text with slight letter-spacing.
 
 ### KPI Card
 
-```css
-.kpi {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 18px 20px;
-}
-.kpi-label {
-  font-size: 12px;
-  color: var(--text2);
-  margin-bottom: 6px;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-}
-.kpi-value {
-  font-size: 28px;
-  font-weight: 700;
-  letter-spacing: -1px;
-}
-.kpi-delta {
-  font-size: 12px;
-  margin-top: 4px;
-}
-.kpi-delta.up { color: var(--green); }
-.kpi-delta.down { color: var(--red); }
-```
+Same surface and border treatment as Card with 10px radius. Contains three elements stacked
+vertically: a small (12px) uppercase secondary-color label, a large bold (28px) value, and a
+small (12px) delta indicator colored green for good changes or red for bad changes.
 
 ### Table
 
-```css
-.wtable { width: 100%; border-collapse: collapse; font-size: 13px; }
-.wtable th {
-  text-align: left; padding: 10px 12px;
-  border-bottom: 2px solid var(--border);
-  font-weight: 600; color: var(--text2);
-  font-size: 12px; text-transform: uppercase; letter-spacing: 0.3px;
-}
-.wtable td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
-.wtable tr:last-child td { border-bottom: none; }
-.wtable tr:hover td { background: var(--accent-light); }
-```
+Full-width table with 13px text. Header row: left-aligned, uppercase, secondary color, bold
+(2px) bottom border. Data cells: light (1px) bottom border, no border on the last row.
+Rows highlight with accent-light background on hover.
 
 ### Inline Bar
 
-```css
-.bar-container {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.bar {
-  height: 8px;
-  border-radius: 4px;
-  background: var(--accent);
-}
-```
+Horizontal container with an 8px-tall rounded bar in accent color. Used for
+proportional value display within table rows.
 
 ### Tag (delta badge)
 
-```css
-.tag {
-  display: inline-block;
-  padding: 3px 8px;
-  border-radius: 4px;
-  font-size: 11px;
-  font-weight: 600;
-}
-.tag.green { background: #dcfce7; color: #166534; }
-.tag.red { background: #fee2e2; color: #991b1b; }
-.tag.gray { background: #f1f5f9; color: #475569; }
-```
+Small inline badge — 11px bold text with 4px border-radius. Three color variants:
+green (light green background, dark green text) for positive,
+red (light red background, dark red text) for negative,
+gray (light slate background, slate text) for neutral.
 
 ### Gauge (SVG Arc)
 
-```css
-.gauge {
-  width: 120px;
-  height: 120px;
-  position: relative;
-  margin: 0 auto;
-}
-.gauge svg { transform: rotate(-90deg); }
-.gauge-label {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  text-align: center;
-}
-.gauge-label .val { font-size: 24px; font-weight: 700; }
-.gauge-label .sub { font-size: 11px; color: var(--text2); }
-```
+120x120px centered SVG arc rotated to start from the top. A centered label overlays
+the arc with a large bold (24px) value and a small (11px) secondary-color subtitle.
 
 ### Sparkline
 
-```css
-.sparkline {
-  display: flex;
-  align-items: stretch;
-  gap: 2px;
-  height: 40px;
-}
-.sparkline .sp-bar {
-  flex: 1;
-  border-radius: 2px 2px 0 0;
-  background: var(--accent);
-  opacity: 0.7;
-  align-self: flex-end;
-}
-```
+Row of thin vertical bars, 40px total height. Bars are accent-colored at 70% opacity
+with rounded top corners, bottom-aligned so taller bars grow upward.
 
 ### Filter Bar
 
-```css
-.filter-bar {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  margin-bottom: 20px;
-  flex-wrap: wrap;
-}
-.filter-bar select {
-  padding: 7px 12px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  font-size: 13px;
-  background: var(--surface);
-}
-.filter-bar .label {
-  font-size: 12px;
-  color: var(--text2);
-  font-weight: 500;
-}
-```
+Horizontal wrapping row of select dropdowns with 10px gaps. Selects have a white
+background, light border, and 6px rounded corners. Small (12px) secondary-color labels
+sit beside them.
 
 ### Progress Bar
 
-```css
-.progress-track {
-  margin-top: 10px;
-  height: 10px;
-  background: var(--border);
-  border-radius: 5px;
-  overflow: hidden;
-}
-.progress-fill {
-  height: 100%;
-  border-radius: 5px;
-  transition: width 0.3s;
-}
-```
+10px-tall rounded track with a border-colored background. The fill bar inside animates
+its width on change.
 
 ### Large Value Card
 
-Used by Forecast and Burn Rate cards.
-
-```css
-.large-value {
-  font-size: 32px;
-  font-weight: 700;
-  margin: 12px 0;
-}
-.large-value-subtitle {
-  font-size: 13px;
-  color: var(--text2);
-}
-.large-value-context {
-  font-size: 12px;
-  color: var(--text2);
-  margin-top: 4px;
-}
-```
+Used by Forecast and Burn Rate cards. Features a prominent 32px bold value, a 13px
+secondary-color subtitle, and optional 12px secondary-color context text.
 
 ### Donut Container
 
-```css
-.donut-container {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 32px;
-  padding: 24px 16px;
-}
-```
+Centered flex row with generous (32px) spacing between the donut chart and its legend,
+padded inside the card.
 
 ### Chart Legend
 
-```css
-.chart-legend {
-  display: flex;
-  justify-content: center;
-  gap: 16px;
-  margin-top: 10px;
-  font-size: 11px;
-  color: var(--text2);
-}
-.legend-dot {
-  display: inline-block;
-  width: 12px;
-  height: 12px;
-  border-radius: 2px;
-  vertical-align: middle;
-  margin-right: 4px;
-}
-```
+Centered horizontal row of small (11px) secondary-color legend items with 16px spacing.
+Each item has a 12x12px colored square indicator beside its label.
 
 ### Avatar
 
-```css
-.avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: var(--accent);
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 13px;
-  font-weight: 600;
-}
-```
+32x32px circle with accent background. White centered bold (13px) text showing user
+initials.
 
 ### Sidebar Footer
 
-```css
-.sidebar-footer {
-  padding: 16px 20px;
-  border-top: 1px solid #2a2d35;
-  font-size: 12px;
-  color: #5f6577;
-}
-```
+Padded area at the bottom of the sidebar, separated by a dark top border. Small (12px)
+muted text for version or status info.
 
 ---
 
@@ -377,109 +182,7 @@ Cost driver color mapping (donut chart):
 
 ---
 
-## Formatting Utilities
-
-Implement in a shared `utils/formatters.ts` module.
-
-### formatCurrencyCompact
-
-Compact currency for KPI values and chart labels.
-
-```typescript
-function formatCurrencyCompact(value: number): string {
-  if (value >= 1_000_000) return `$${(value / 1_000_000).toFixed(1)}M`;
-  if (value >= 1_000) return `$${(value / 1_000).toFixed(1)}K`;
-  return `$${value.toFixed(0)}`;
-}
-// formatCurrencyCompact(47200) → "$47.2K"
-// formatCurrencyCompact(1234567) → "$1.2M"
-```
-
-### formatCurrencyFull
-
-Full currency with thousands separator for table cells.
-
-```typescript
-function formatCurrencyFull(value: number): string {
-  return `$${Math.round(value).toLocaleString("en-US")}`;
-}
-// formatCurrencyFull(21340) → "$21,340"
-```
-
-### formatCurrencyPrecise
-
-Two-decimal currency for per-unit costs.
-
-```typescript
-function formatCurrencyPrecise(value: number): string {
-  return `$${value.toFixed(2)}`;
-}
-// formatCurrencyPrecise(5.07) → "$5.07"
-```
-
-### formatPercent
-
-Percentage with one decimal place.
-
-```typescript
-function formatPercent(value: number): string {
-  return `${value.toFixed(1)}%`;
-}
-// formatPercent(96.3) → "96.3%"
-```
-
-### formatCount
-
-Integer with thousands separator.
-
-```typescript
-function formatCount(value: number): string {
-  return Math.round(value).toLocaleString("en-US");
-}
-// formatCount(12847) → "12,847"
-```
-
-### formatSignedPercent
-
-Signed percentage for delta display.
-
-```typescript
-function formatSignedPercent(value: number): string {
-  const sign = value > 0 ? "+" : "";
-  return `${sign}${value.toFixed(1)}%`;
-}
-// formatSignedPercent(8.3) → "+8.3%"
-// formatSignedPercent(-2.1) → "-2.1%"
-```
-
-### formatDuration
-
-Duration in seconds with one decimal.
-
-```typescript
-function formatDuration(ms: number): string {
-  return `${(ms / 1000).toFixed(1)}s`;
-}
-// formatDuration(4200) → "4.2s"
-```
-
-### formatRelativeTime
-
-Relative timestamp for "last active" fields.
-
-```typescript
-function formatRelativeTime(iso: string): string {
-  const diff = Date.now() - new Date(iso).getTime();
-  const minutes = Math.floor(diff / 60_000);
-  if (minutes < 60) return `${minutes} min ago`;
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours} hour${hours > 1 ? "s" : ""} ago`;
-  const days = Math.floor(hours / 24);
-  return `${days} day${days > 1 ? "s" : ""} ago`;
-}
-```
-
-### Delta Color Rules
+## Delta Color Rules
 
 | Metric type | Positive delta | Negative delta |
 |-------------|---------------|----------------|
@@ -494,14 +197,8 @@ CSS classes: `.kpi-delta.up` = green (good), `.kpi-delta.down` = red (bad).
 **Important:** "up"/"down" refer to good/bad, NOT numeric direction. A cost increase is
 numerically positive but semantically bad, so it gets `.kpi-delta.down` (red).
 
-```typescript
-function getDeltaClass(value: number, type: "cost" | "rate" | "count"): string {
-  if (value === 0) return "";
-  const isPositive = value > 0;
-  const isGood = type === "cost" ? !isPositive : isPositive;
-  return isGood ? "up" : "down";
-}
-```
+For formatting utilities and `getDeltaClass` implementation, see
+[frontend-spec.md — Formatting Utilities](frontend-spec.md#formatting-utilities).
 
 ---
 
@@ -526,17 +223,10 @@ Skeleton placeholder matching the widget's dimensions:
 
 ### Error
 
-```html
-<div class="widget-error">
-  <p>Failed to load data</p>
-  <button onclick="refetch()">Retry</button>
-</div>
-```
-
+Centered column showing a "Failed to load data" message and a bordered retry button.
 The retry button calls the query's `refetch()`. Other widgets continue independently.
 
 ### Refreshing
 
 Background re-fetch while stale data exists. Show stale data as-is — no spinner. The UI
 updates seamlessly when fresh data arrives.
-

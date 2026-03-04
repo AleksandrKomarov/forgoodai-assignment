@@ -16,7 +16,7 @@ export const defaultRoute = "/executive-summary" as const;
 export const navItems: NavItem[] = [
   { to: defaultRoute, label: "Executive Summary", icon: "\u25C7", component: ExecutiveSummary },
   { to: "/cost-explorer", label: "Cost Explorer", icon: "$", component: CostExplorer },
-  { to: "/performance", label: "Performance", icon: "\u26A1", component: Performance },
+  { to: "/performance", label: "Performance & Reliability", icon: "\u26A1", component: Performance },
   { to: "/usage", label: "Usage & Capacity", icon: "\u25A0", component: UsageCapacity },
   { to: "/team", label: "Team Drill-Down", icon: "\u2637", component: TeamDrillDown },
 ];

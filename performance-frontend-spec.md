@@ -449,5 +449,5 @@ All widgets re-fetch when the date range changes:
 No fixed-window widgets on this view — all are range-scoped.
 
 **90-day limit:** The `latency-kpi` endpoint returns 400 when the selected range exceeds 90 days.
-The latency KPI cards should handle this gracefully — show the error state with a message
-indicating the range limit.
+The latency KPI cards show an inline warning (not the generic error state) explaining that
+latency data is limited to 90-day ranges. Other widgets on the page continue to work normally.

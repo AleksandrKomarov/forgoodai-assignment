@@ -32,9 +32,14 @@ Sidebar footer displays the tenant (organization) name.
 
 - A global date range selector in the header applies to all views
 - Presets: Last 7 days, Last 30 days, Last 90 days, This month, Custom range
+- Custom range: user picks start and end dates; earliest start is 2 years ago, end cannot
+  exceed today, max span is 365 days (backend limit). Inline validation errors are shown for
+  invalid ranges; invalid ranges are not propagated to widgets
 - Changing the date range refreshes all date-dependent widgets across the current view
 - Some widgets have fixed windows (e.g., "last 12 months", "last 6 months") and are
   not affected by the date range selector
+- Some widgets are limited to 90-day ranges (latency KPIs, concurrency chart, run heatmap).
+  These show an inline warning when the selected range exceeds 90 days
 
 ### Prior-Period Comparison
 
@@ -182,7 +187,7 @@ Success/failure trends, latency analysis, error categorization, and failure hots
 | p99 Latency | 99th percentile run duration | Millisecond change vs prior period |
 
 Latency percentiles are computed from raw run data (not rollups) for accuracy.
-Limited to 90-day maximum range.
+Limited to 90-day range — shows an inline warning when the selected range exceeds 90 days.
 
 ### Success / Failure Chart
 
@@ -243,7 +248,8 @@ Adoption metrics, concurrency monitoring, run distribution, and agent type trend
 - Bars that exceed or approach the limit are visually highlighted
 - Helps identify capacity pressure and burst patterns
 
-Limited to 90-day maximum range (uses hourly-granularity data).
+Limited to 90-day range — shows an inline warning when the selected range exceeds 90 days
+(uses hourly-granularity data).
 
 ### Run Volume by Team
 
@@ -257,7 +263,8 @@ Limited to 90-day maximum range (uses hourly-granularity data).
 - Cell color intensity maps to run count
 - Shows when runs cluster — useful for capacity planning and identifying peak hours
 
-Limited to 90-day maximum range (uses hourly-granularity data).
+Limited to 90-day range — shows an inline warning when the selected range exceeds 90 days
+(uses hourly-granularity data).
 
 ### Agent Type Adoption Chart
 

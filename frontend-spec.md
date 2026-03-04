@@ -6,8 +6,8 @@ A React SPA that surfaces org-level analytics for a cloud agent platform. Five v
 Summary, Cost Explorer, Performance & Reliability, Usage & Capacity, and Team Drill-Down — each
 composed of independent widget components that fetch data in parallel.
 
-For backend API contracts, see the individual view specs and
-[backend-spec-common.md](backend-spec-common.md).
+For the API endpoint catalog, see [api-reference.md](api-reference.md).
+For shared backend conventions (auth, validation, caching), see [backend-spec-common.md](backend-spec-common.md).
 
 ---
 
@@ -96,7 +96,10 @@ Presets compute `start` and `end` at selection time:
 - Last 30 days: `end = today`, `start = today - 29d`
 - Last 90 days: `end = today`, `start = today - 89d`
 - This month: `start = first of month`, `end = today`
-- Custom: user picks both dates
+- Custom: user picks both dates (earliest start: 2 years ago, latest: today, max span: 365 days).
+  Both inputs allow free selection within the absolute bounds. Inline validation errors appear
+  for invalid ranges (missing date, end before start, span > 365 days). Invalid ranges are not
+  propagated — widgets keep the last valid range until corrected.
 
 Changing the date range updates query keys, which triggers automatic re-fetch for all mounted
 range-scoped queries. Fixed-window endpoints (`monthly-spend`, `agent-adoption`,
@@ -248,6 +251,9 @@ Changing dimension or granularity re-fetches `daily-spend` only.
 Layout: 4-column KPI row, full-width success/failure chart, 1:1 grid (treemap + latency),
 1:1 grid (slowest agents table + failure hotspots matrix).
 
+**90-day limit:** The `latency-kpi` endpoint requires ≤ 90-day range. When the selected range
+exceeds 90 days, the latency KPI cards show an inline warning instead of data.
+
 ---
 
 ### Usage & Capacity
@@ -267,6 +273,10 @@ Layout: 4-column KPI row, full-width success/failure chart, 1:1 grid (treemap + 
 
 Layout: 4-column KPI row, full-width concurrency chart, 1:1 grid (run volume by team +
 heatmap), full-width adoption chart.
+
+**90-day limit:** The `concurrency-timeseries` and `run-heatmap` endpoints require ≤ 90-day range
+(hourly-granularity data). When the selected range exceeds 90 days, these widgets show an inline
+warning instead of data.
 
 ---
 
@@ -308,43 +318,27 @@ date range). Team-scoped endpoints re-fetch on both team selection and date rang
 
 ---
 
-## Formatting Conventions
+## Design Tokens
 
-| Data Type | Format | Examples |
-|-----------|--------|---------|
-| Currency (large) | `$XX.XK` | $47.2K, $21.3K |
-| Currency (table) | `$XX,XXX` | $21,340, $8,120 |
-| Percentage | One decimal | 96.3%, 88.4% |
-| Duration | Seconds with one decimal | 4.2s, 18.4s |
-| Delta (cost/runs) | Signed percentage, color-coded | +8.3% (green up), -3.0% (red down) |
-| Delta (rates) | Percentage points | +0.5pp, -1.2pp |
-| Timestamps | Relative | 2 hours ago, 1 day ago |
-| Counts | Thousands separator | 12,847, 4,210 |
-
-Color coding for deltas:
-- Cost/spend increases: red (bad) — higher cost
-- Cost/spend decreases: green (good) — lower cost
-- Success rate increases: green (good) — better reliability
-- Success rate decreases: red (bad) — worse reliability
-- Run count increases: green (good) — higher adoption
-- Latency increases: red (bad) — slower performance
+See [frontend-design-spec.md](frontend-design-spec.md) for design tokens, component appearance,
+and delta color rules.
 
 ---
 
-## Design Tokens
+## Formatting Utilities
 
-Consistent with the [wireframe](wireframe.html):
+Implemented in `formatters.ts`. See
+[requirements-spec.md — Display Formatting](requirements-spec.md#display-formatting) for the
+format rules these implement.
 
-| Token | Value | Usage |
-|-------|-------|-------|
-| `--bg` | `#f5f6fa` | Page background |
-| `--surface` | `#fff` | Card backgrounds |
-| `--border` | `#e2e5ec` | Card borders, dividers |
-| `--text` | `#1a1d23` | Primary text |
-| `--text2` | `#5f6577` | Secondary text, labels |
-| `--accent` | `#4361ee` | Primary charts, active states |
-| `--green` | `#22c55e` | Success, positive deltas |
-| `--red` | `#ef4444` | Failure, negative deltas, over-budget |
-| `--orange` | `#f59e0b` | Warnings, tertiary chart series |
-
-Sidebar: dark background (`#1a1d23`), light text, accent highlight on active nav item.
+| Function | Purpose | Example |
+|----------|---------|---------|
+| `formatCurrencyCompact` | Abbreviated currency for KPIs | `$47.2K`, `$1.2M` |
+| `formatCurrencyFull` | Full currency with thousands separator | `$21,340` |
+| `formatCurrencyPrecise` | Two-decimal currency for per-unit costs | `$5.07` |
+| `formatPercent` | Percentage with one decimal | `96.3%` |
+| `formatCount` | Integer with thousands separator | `12,847` |
+| `formatSignedPercent` | Signed percentage for deltas | `+8.3%`, `-2.1%` |
+| `formatDuration` | Duration from ms to seconds | `4.2s` |
+| `formatRelativeTime` | Relative timestamp | `2 hours ago` |
+| `getDeltaClass` | Maps delta + metric type to `"up"` / `"down"` CSS class | see delta color rules |

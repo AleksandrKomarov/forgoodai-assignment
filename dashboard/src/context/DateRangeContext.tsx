@@ -1,39 +1,44 @@
 import { createContext, useContext, useState, useMemo, type ReactNode } from "react";
+import { presets, defaultPreset, type PresetDefinition } from "../presets";
+import { today } from "../dateUtils";
 
-type Preset = "7d" | "30d" | "90d" | "this-month";
+export { presets, type PresetDefinition };
 
 interface DateRange {
   start: string;
   end: string;
-  preset: Preset;
-  setPreset: (preset: Preset) => void;
+  activePreset: PresetDefinition;
+  setPresetKey: (key: string) => void;
+  setCustomRange: (start: string, end: string) => void;
 }
 
 const DateRangeContext = createContext<DateRange | null>(null);
 
-function computeRange(preset: Preset): { start: string; end: string } {
-  const now = new Date();
-  const end = now.toISOString().slice(0, 10);
-
-  if (preset === "this-month") {
-    const start = new Date(now.getFullYear(), now.getMonth(), 1)
-      .toISOString()
-      .slice(0, 10);
-    return { start, end };
-  }
-
-  const days = preset === "7d" ? 7 : preset === "30d" ? 30 : 90;
-  const startDate = new Date(now);
-  startDate.setDate(startDate.getDate() - days);
-  return { start: startDate.toISOString().slice(0, 10), end };
-}
-
 export function DateRangeProvider({ children }: { children: ReactNode }) {
-  const [preset, setPreset] = useState<Preset>("30d");
-  const range = useMemo(() => computeRange(preset), [preset]);
+  const [presetKey, setPresetKey] = useState(defaultPreset.key);
+  const [customStart, setCustomStart] = useState("");
+  const [customEnd, setCustomEnd] = useState("");
+
+  const activePreset = presets.find((p) => p.key === presetKey) ?? defaultPreset;
+
+  const range = useMemo(() => {
+    if (activePreset.computeRange) {
+      return activePreset.computeRange();
+    }
+    const fallback = today();
+    return customStart && customEnd
+      ? { start: customStart, end: customEnd }
+      : { start: fallback, end: fallback };
+  }, [activePreset, customStart, customEnd]);
+
+  const setCustomRange = (start: string, end: string) => {
+    setCustomStart(start);
+    setCustomEnd(end);
+    setPresetKey("custom");
+  };
 
   return (
-    <DateRangeContext.Provider value={{ ...range, preset, setPreset }}>
+    <DateRangeContext.Provider value={{ ...range, activePreset, setPresetKey, setCustomRange }}>
       {children}
     </DateRangeContext.Provider>
   );
@@ -44,10 +49,3 @@ export function useDateRange(): DateRange {
   if (!ctx) throw new Error("useDateRange must be used within DateRangeProvider");
   return ctx;
 }
-
-export const presetLabels: Record<Preset, string> = {
-  "7d": "Last 7 days",
-  "30d": "Last 30 days",
-  "90d": "Last 90 days",
-  "this-month": "This month",
-};

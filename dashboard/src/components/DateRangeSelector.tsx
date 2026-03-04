@@ -1,18 +1,22 @@
-import { useDateRange, presetLabels } from "../context/DateRangeContext";
+import { useDateRange } from "../context/DateRangeContext";
+import { presets } from "../presets";
 
 export default function DateRangeSelector() {
-  const { preset, setPreset } = useDateRange();
+  const { activePreset, setPresetKey } = useDateRange();
 
   return (
-    <select
-      value={preset}
-      onChange={(e) => setPreset(e.target.value as typeof preset)}
-    >
-      {Object.entries(presetLabels).map(([value, label]) => (
-        <option key={value} value={value}>
-          {label}
-        </option>
-      ))}
-    </select>
+    <div className="date-range-selector">
+      <select
+        value={activePreset.key}
+        onChange={(e) => setPresetKey(e.target.value)}
+      >
+        {presets.map((p) => (
+          <option key={p.key} value={p.key}>
+            {p.label}
+          </option>
+        ))}
+      </select>
+      {activePreset.InputComponent && <activePreset.InputComponent />}
+    </div>
   );
 }

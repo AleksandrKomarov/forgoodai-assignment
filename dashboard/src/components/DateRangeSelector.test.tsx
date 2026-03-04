@@ -3,24 +3,36 @@ import userEvent from "@testing-library/user-event";
 import DateRangeSelector from "./DateRangeSelector";
 import { useDateRange } from "../context/DateRangeContext";
 
+const { mockPresets } = vi.hoisted(() => {
+  const MockInput = () => <span data-testid="mock-input" />;
+  const mockPresets = [
+    { key: "a", label: "Label A", computeRange: () => ({ start: "", end: "" }) },
+    { key: "b", label: "Label B", computeRange: () => ({ start: "", end: "" }) },
+    { key: "custom", label: "Custom", InputComponent: MockInput },
+  ];
+  return { MockInput, mockPresets };
+});
+
 vi.mock("../context/DateRangeContext", () => ({
   useDateRange: vi.fn(),
-  presetLabels: { a: "Label A", b: "Label B" },
+}));
+
+vi.mock("../presets", () => ({
+  presets: mockPresets,
 }));
 
 const mockUseDateRange = vi.mocked(useDateRange);
 
-function renderSelector(preset = "a") {
-  const setPreset = vi.fn();
+function renderSelector(presetKey = "a") {
+  const setPresetKey = vi.fn();
+  const activePreset = mockPresets.find((p) => p.key === presetKey)!;
   mockUseDateRange.mockReturnValue({
-    preset: preset as "30d",
-    setPreset,
-    start: "2026-01-01",
-    end: "2026-01-31",
-  });
+    activePreset,
+    setPresetKey,
+  } as unknown as ReturnType<typeof useDateRange>);
   const user = userEvent.setup();
   render(<DateRangeSelector />);
-  return { user, setPreset };
+  return { user, setPresetKey };
 }
 
 describe("DateRangeSelector", () => {
@@ -28,6 +40,7 @@ describe("DateRangeSelector", () => {
     renderSelector();
     expect(screen.getByRole("option", { name: "Label A" })).toBeInTheDocument();
     expect(screen.getByRole("option", { name: "Label B" })).toBeInTheDocument();
+    expect(screen.getByRole("option", { name: "Custom" })).toBeInTheDocument();
   });
 
   it("reflects the current preset from context", () => {
@@ -35,9 +48,19 @@ describe("DateRangeSelector", () => {
     expect(screen.getByRole("combobox")).toHaveValue("b");
   });
 
-  it("calls setPreset when selection changes", async () => {
-    const { user, setPreset } = renderSelector();
+  it("calls setPresetKey when selection changes", async () => {
+    const { user, setPresetKey } = renderSelector();
     await user.selectOptions(screen.getByRole("combobox"), "b");
-    expect(setPreset).toHaveBeenCalledWith("b");
+    expect(setPresetKey).toHaveBeenCalledWith("b");
+  });
+
+  it("does not render InputComponent for preset without one", () => {
+    renderSelector("a");
+    expect(screen.queryByTestId("mock-input")).not.toBeInTheDocument();
+  });
+
+  it("renders InputComponent for preset that has one", () => {
+    renderSelector("custom");
+    expect(screen.getByTestId("mock-input")).toBeInTheDocument();
   });
 });

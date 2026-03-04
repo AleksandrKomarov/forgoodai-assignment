@@ -56,10 +56,13 @@ body {
 }
 .header h1 { font-size: 16px; font-weight: 600; }
 .header-right { display: flex; align-items: center; gap: 16px; }
-.header-right select {
+.date-range-selector { display: flex; align-items: center; gap: 8px; }
+.date-range-selector select,
+.date-range-selector input[type="date"] {
   padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px;
   font-size: 13px; background: var(--bg);
 }
+.date-range-error { color: var(--red); font-size: 12px; }
 
 /* Main Content */
 .main {
