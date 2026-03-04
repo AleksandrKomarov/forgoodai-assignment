@@ -313,6 +313,54 @@ body {
   font-size: 10px; color: var(--text2); white-space: nowrap;
 }
 
+/* Concurrency Chart */
+.concurrency-chart {
+  display: flex; align-items: flex-end; gap: 3px;
+  position: relative; padding-bottom: 20px;
+}
+.concurrency-bar {
+  flex: 1; border-radius: 3px 3px 0 0; position: relative;
+}
+.concurrency-label {
+  position: absolute; bottom: -18px; left: 0;
+  font-size: 9px; color: var(--text2); white-space: nowrap;
+}
+.concurrency-limit-line {
+  position: absolute; left: 0; right: 0;
+  border-top: 2px dashed var(--orange); pointer-events: none;
+}
+.concurrency-limit-label {
+  position: absolute; right: 0; top: -16px;
+  font-size: 10px; font-weight: 600; color: var(--orange);
+  white-space: nowrap;
+}
+
+/* Run Volume Horizontal Bars */
+.run-volume-row {
+  display: flex; align-items: center; gap: 12px; margin-bottom: 12px;
+}
+.run-volume-track {
+  flex: 1; height: 24px; background: var(--bg);
+  border-radius: 4px; overflow: hidden;
+}
+.run-volume-fill {
+  height: 100%; background: var(--accent); border-radius: 4px;
+  transition: width 0.3s;
+}
+
+/* Agent Adoption Chart */
+.adoption-chart {
+  display: flex; align-items: flex-end; justify-content: center; gap: 16px;
+}
+.adoption-bar {
+  width: 100%; max-width: 64px; background: var(--accent); border-radius: 4px 4px 0 0;
+}
+
+/* Heatmap Table */
+.heatmap-table .heatmap-cell {
+  border-radius: 3px; min-width: 16px; min-height: 16px;
+}
+
 /* Widget Error */
 .widget-error {
   display: flex; flex-direction: column; align-items: center;

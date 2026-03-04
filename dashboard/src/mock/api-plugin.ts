@@ -21,6 +21,13 @@ import {
   generateSlowestAgents,
   generateFailureHotspots,
 } from "./performance";
+import {
+  generateActiveUsers,
+  generateConcurrencyTimeseries,
+  generateRunVolumeByTeam,
+  generateRunHeatmap,
+  generateAgentAdoption,
+} from "./usage-capacity";
 
 type RouteHandler = (params: URLSearchParams) => unknown;
 
@@ -60,6 +67,15 @@ const routes: Record<string, RouteHandler> = {
     ),
   "failure-hotspots": (p) =>
     generateFailureHotspots(p.get("start") ?? "", p.get("end") ?? ""),
+  "active-users": (p) =>
+    generateActiveUsers(p.get("start") ?? "", p.get("end") ?? ""),
+  "concurrency-timeseries": (p) =>
+    generateConcurrencyTimeseries(p.get("start") ?? "", p.get("end") ?? ""),
+  "run-volume-by-team": (p) =>
+    generateRunVolumeByTeam(p.get("start") ?? "", p.get("end") ?? ""),
+  "run-heatmap": (p) =>
+    generateRunHeatmap(p.get("start") ?? "", p.get("end") ?? ""),
+  "agent-adoption": () => generateAgentAdoption(),
 };
 
 function randomDelay(): number {
