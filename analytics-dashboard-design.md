@@ -88,7 +88,7 @@ Primary personas:
 
 ### Team Drill-Down
 - Per-team: runs, cost, success rate, top agents, active users
-- Per-user activity within a team (RBAC-gated, Entra ID roles)
+- Per-user activity within a team
 
 ---
 
@@ -106,6 +106,8 @@ Primary personas:
               | JSON events over AMQP           |                  |                            |
               |                                 |                  |  Budget API:               |
               |                                 |                  |  GET /tenants/{id}/budget  |
+              |                                 |                  |  Quota API:                |
+              |                                 |                  |  GET /tenants/{id}/quota   |
               |                                 |                  +-------------+--------------+
               v                                 v events /                       |
 +------------------------------------------+----+ webhooks                       |
@@ -150,15 +152,32 @@ Primary personas:
 |   - AgentRuns           enriched run records, 90d hot       |
 |   - RunCosts            cost per run from Billing System    |
 |   - HourlyRollup        update policy on AgentRuns          |
+|     per (tenant, team, hour): run_count,                    |
+|     peak_concurrent (max overlapping runs). 90d hot         |
 |   - DailyRollup         update policy, retained 2 years     |
 |   - HourlyCostRollup    update policy on RunCosts           |
+|     (joins AgentRuns to include agent_type)                 |
 |   - DailyCostRollup     update policy, retained 2 years     |
+|     (joins AgentRuns to include agent_type)                 |
+|   - DailyAgentRollup    update policy on AgentRuns          |
+|     per (tenant, team, agent_type, day): run_count,         |
+|     failed_count, sum_duration_ms, p50/p95/p99 duration     |
+|     Retained 2 years                                        |
+|   - DailyErrorRollup    update policy on AgentRuns          |
+|     per (tenant, day, error_code): count                    |
+|     Retained 2 years                                        |
+|   - DailyUserRollup     update policy on AgentRuns          |
+|     per (tenant, team, user_id, day): run_count,            |
+|     completed_count, failed_count, last_active              |
+|     Retained 2 years                                        |
 |                                                             |
 |   Stored function: AgentRunsWithCost()                      |
 |   - Joins AgentRuns + RunCosts on run_id for cost views     |
 |                                                             |
 |   ADX update policies auto-populate rollup tables on        |
 |   every AgentRuns / RunCosts ingestion — no scheduled jobs  |
+|   Cost rollup policies join RunCosts + AgentRuns on run_id  |
+|   to include agent_type for per-agent cost analysis         |
 +----------------------+--------------------------------------+
                        |  KQL
                        v
@@ -205,6 +224,12 @@ Primary personas:
 |   Container: tenant-budgets (cache)                         |
 |     { tenant_id: uuid, period: "2025-03",                   |
 |       budget_usd: 45000, updated_at }                       |
+|     Partition key: tenant_id                                |
+|     Synced from Billing System API                          |
+|                                                             |
+|   Container: tenant-quotas (cache)                          |
+|     { tenant_id: uuid, concurrency_limit: 50,               |
+|       updated_at }                                          |
 |     Partition key: tenant_id                                |
 |     Synced from Billing System API                          |
 +-------------------------------------------------------------+
@@ -385,9 +410,14 @@ physical partition, ensuring even load distribution.)
 
 6. **ADX update policies for rollups:** Pre-aggregated HourlyRollup and DailyRollup tables are
    populated automatically on every AgentRuns ingestion via KQL update policies; separate
-   HourlyCostRollup and DailyCostRollup tables are populated on RunCosts ingestion. Dashboard
-   queries hit rollup tables for trend/range queries and the raw tables only for short windows
-   (< 24h), keeping all queries fast.
+   HourlyCostRollup and DailyCostRollup tables are populated on RunCosts ingestion. Cost rollup
+   update policies join `RunCosts` with `AgentRuns` on `run_id` to include `agent_type`, enabling
+   per-agent cost analysis without querying raw tables. `DailyAgentRollup` pre-aggregates run
+   counts, failure counts, duration sums, and daily latency percentiles per (tenant, team,
+   agent_type, day) for performance views. `DailyErrorRollup` pre-aggregates error counts per
+   (tenant, day, error_code) for error taxonomy. Dashboard queries hit rollup tables for
+   trend/range queries and the raw tables only for period-wide percentile calculations
+   (which require the full distribution).
 
 7. **Budget data from Billing System:** Monthly budgets per tenant are owned by the Billing
    System (where admins set them). The Analytics API layer fetches the current period's budget
@@ -395,7 +425,19 @@ physical partition, ensuring even load distribution.)
    periodically). Actual spend from cost rollup tables is compared against the budget to power
    the budget burn rate widget and over/under-budget indicators.
 
-8. **Billing system decoupled from analytics:** Pricing is owned by an external Billing System
+8. **Per-user rollup for adoption and activity:** `DailyUserRollup` stores per-user rows
+   per (tenant, team, user_id, day) with run_count, completed_count, failed_count, and
+   last_active. Cross-day distinct user counts use `dcount(user_id)` over the rollup. This
+   avoids the 90-day retention limit of raw AgentRuns and also powers per-user activity
+   tables in the Team Drill-Down view.
+
+9. **Concurrency tracking in HourlyRollup:** `HourlyRollup` stores `peak_concurrent` per
+   hour — the maximum number of overlapping runs (where `started_at < hour_end` and
+   `ended_at > hour_start`). Computed by the ADX update policy on ingestion. Tenant
+   concurrency limits are fetched from the Billing System API and cached in a
+   `tenant-quotas` Cosmos container (same sync pattern as `tenant-budgets`).
+
+10. **Billing system decoupled from analytics:** Pricing is owned by an external Billing System
    that publishes `run.priced` events with the final cost per run. The analytics pipeline stores
    cost in a separate `RunCosts` ADX table, keeping run analytics (latency, success rates, etc.)
    immediately available without waiting for pricing. Dashboard cost views join `AgentRuns` +
