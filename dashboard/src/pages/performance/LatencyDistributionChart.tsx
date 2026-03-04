@@ -30,7 +30,12 @@ export default function LatencyDistributionChart() {
         <div className="card-title">Latency Distribution (p50 / p95 / p99)</div>
         <div className="latency-chart" style={{ height: 200 }}>
           {daily.map((d, i) => (
-            <div className="latency-bar-col" key={d.date} style={{ height: "100%" }}>
+            <div
+              className="latency-bar-col"
+              key={d.date}
+              style={{ height: "100%" }}
+              title={`${d.date}\np50: ${d.p50_ms}ms\np95: ${d.p95_ms}ms\np99: ${d.p99_ms}ms`}
+            >
               <div
                 className="bar-p99"
                 style={{ height: `${(d.p99_ms / maxLatency) * 100}%` }}
