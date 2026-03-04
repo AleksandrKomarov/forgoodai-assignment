@@ -11,8 +11,8 @@ All endpoints require a valid **Entra ID JWT**, validated by API Management (`va
 - **Tenant scoping:** the `tid` (Tenant ID) claim from the JWT is injected as `tenant_id` into
   every KQL query. No endpoint accepts `tenant_id` as a query parameter — it's always derived
   from the token.
-- **RBAC:** all roles (`TenantAdmin`, `TeamLead`, `Contributor`, `Finance`) can read all dashboard
-  widgets. No role-based filtering is applied at the widget level.
+- **Access:** all authenticated users within a tenant can read all dashboard widgets. No
+  role-based filtering is applied.
 
 ---
 
