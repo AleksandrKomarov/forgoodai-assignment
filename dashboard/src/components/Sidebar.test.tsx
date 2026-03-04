@@ -59,4 +59,9 @@ describe("Sidebar", () => {
     expect(screen.getByText("Page A").closest("a")).toHaveAttribute("href", "/page-a");
     expect(screen.getByText("Page B").closest("a")).toHaveAttribute("href", "/page-b");
   });
+
+  it("renders hamburger toggle button", () => {
+    renderSidebar();
+    expect(screen.getByLabelText("Open menu")).toBeInTheDocument();
+  });
 });

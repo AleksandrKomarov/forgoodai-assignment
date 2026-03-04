@@ -81,6 +81,28 @@ Footer shows tenant name (from JWT `tid` claim, resolved via Graph API).
 
 One route per view. Executive Summary is the default (`/`).
 
+### Responsive Layout
+
+CSS-only responsive design using three breakpoints. No component structure changes — all
+responsiveness is handled via media queries in `App.css`.
+
+| Breakpoint | Target | Sidebar | KPI Row | Grids |
+|------------|--------|---------|---------|-------|
+| `>1024px` | Desktop | Full 220px with labels | 4 columns | 2:1 / 1:1 as designed |
+| `≤1024px` | Tablet | Icon-only 56px (labels hidden) | 2 columns | Unchanged |
+| `≤768px` | Small tablet | Hidden off-screen, hamburger toggle | 2 columns | Single column |
+| `≤480px` | Phone | Hidden, hamburger toggle | Single column | Single column, tight gaps |
+
+Mobile sidebar behavior (≤768px):
+- Sidebar slides off-screen with `transform: translateX(-100%)`
+- A hamburger button (`☰`) appears at top-left, fixed position
+- Tapping the hamburger opens the sidebar as a drawer overlay
+- A semi-transparent backdrop closes the sidebar on tap
+- Navigating to a page also closes the sidebar
+
+Tables get horizontal scroll (`overflow-x: auto`) at ≤768px. The date range selector and
+pill navigation wrap to multiple rows on narrow screens.
+
 ---
 
 ## Global State
