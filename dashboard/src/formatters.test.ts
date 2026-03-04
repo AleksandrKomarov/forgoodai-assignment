@@ -8,6 +8,8 @@ import {
   formatDuration,
   formatRelativeTime,
   getDeltaClass,
+  formatLatencyDelta,
+  getLatencyDeltaClass,
 } from "./formatters";
 
 describe("formatCurrencyCompact", () => {
@@ -85,4 +87,31 @@ describe("getDeltaClass", () => {
 
   it("count increase is good (up/green)", () => expect(getDeltaClass(5, "count")).toBe("up"));
   it("count decrease is bad (down/red)", () => expect(getDeltaClass(-5, "count")).toBe("down"));
+});
+
+describe("formatLatencyDelta", () => {
+  it.each([
+    [80, "+80ms"],
+    [-80, "-80ms"],
+    [0, "0ms"],
+    [999, "+999ms"],
+    [-999, "-999ms"],
+    [1000, "+1.0s"],
+    [1400, "+1.4s"],
+    [-1200, "-1.2s"],
+  ])("formatLatencyDelta(%i) => %s", (ms, expected) => {
+    expect(formatLatencyDelta(ms)).toBe(expected);
+  });
+});
+
+describe("getLatencyDeltaClass", () => {
+  it.each([
+    [0, ""],
+    [-80, "up"],
+    [-1200, "up"],
+    [320, "down"],
+    [1400, "down"],
+  ])("getLatencyDeltaClass(%i) => %s", (ms, expected) => {
+    expect(getLatencyDeltaClass(ms)).toBe(expected);
+  });
 });

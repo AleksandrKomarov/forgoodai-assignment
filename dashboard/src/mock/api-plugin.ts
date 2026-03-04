@@ -12,6 +12,15 @@ import {
   generateSpendBreakdown,
   generateTeamCostSummary,
 } from "./cost-explorer";
+import {
+  generateSuccessRatePerf,
+  generateLatencyKpi,
+  generateSuccessFailureTimeseries,
+  generateErrorTaxonomy,
+  generateLatencyDistribution,
+  generateSlowestAgents,
+  generateFailureHotspots,
+} from "./performance";
 
 type RouteHandler = (params: URLSearchParams) => unknown;
 
@@ -33,6 +42,24 @@ const routes: Record<string, RouteHandler> = {
     generateSpendBreakdown(p.get("start") ?? "", p.get("end") ?? ""),
   "team-cost-summary": (p) =>
     generateTeamCostSummary(p.get("start") ?? "", p.get("end") ?? ""),
+  "perf-success-rate": (p) =>
+    generateSuccessRatePerf(p.get("start") ?? "", p.get("end") ?? ""),
+  "latency-kpi": (p) =>
+    generateLatencyKpi(p.get("start") ?? "", p.get("end") ?? ""),
+  "success-failure-timeseries": (p) =>
+    generateSuccessFailureTimeseries(p.get("start") ?? "", p.get("end") ?? ""),
+  "error-taxonomy": (p) =>
+    generateErrorTaxonomy(p.get("start") ?? "", p.get("end") ?? ""),
+  "latency-distribution": (p) =>
+    generateLatencyDistribution(p.get("start") ?? "", p.get("end") ?? ""),
+  "slowest-agents": (p) =>
+    generateSlowestAgents(
+      p.get("start") ?? "",
+      p.get("end") ?? "",
+      Number(p.get("limit") ?? "10"),
+    ),
+  "failure-hotspots": (p) =>
+    generateFailureHotspots(p.get("start") ?? "", p.get("end") ?? ""),
 };
 
 function randomDelay(): number {

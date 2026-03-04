@@ -58,3 +58,16 @@ export function getDeltaClass(value: number, type: "cost" | "rate" | "count"): s
   const isGood = type === "cost" ? !isPositive : isPositive;
   return isGood ? "up" : "down";
 }
+
+/** Latency delta with sign and unit (ms or s). */
+export function formatLatencyDelta(ms: number): string {
+  const sign = ms > 0 ? "+" : "";
+  if (Math.abs(ms) >= 1000) return `${sign}${(ms / 1000).toFixed(1)}s`;
+  return `${sign}${ms}ms`;
+}
+
+/** Delta class for latency: decrease = good (up/green), increase = bad (down/red). */
+export function getLatencyDeltaClass(ms: number): string {
+  if (ms === 0) return "";
+  return ms < 0 ? "up" : "down";
+}
