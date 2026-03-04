@@ -7,6 +7,11 @@ import {
   generateSpendKpi,
   generateBudgetForecast,
 } from "./executive-summary";
+import {
+  generateDailySpend,
+  generateSpendBreakdown,
+  generateTeamCostSummary,
+} from "./cost-explorer";
 
 type RouteHandler = (params: URLSearchParams) => unknown;
 
@@ -17,6 +22,17 @@ const routes: Record<string, RouteHandler> = {
   "run-volume": (p) => generateRunVolume(p.get("start") ?? "", p.get("end") ?? ""),
   "top-cost-centers": (p) => generateTopCostCenters(p.get("start") ?? "", p.get("end") ?? ""),
   "spend-kpi": (p) => generateSpendKpi(p.get("start") ?? "", p.get("end") ?? ""),
+  "daily-spend": (p) =>
+    generateDailySpend(
+      p.get("start") ?? "",
+      p.get("end") ?? "",
+      p.get("dimension") ?? "team",
+      p.get("granularity") ?? "daily",
+    ),
+  "spend-breakdown": (p) =>
+    generateSpendBreakdown(p.get("start") ?? "", p.get("end") ?? ""),
+  "team-cost-summary": (p) =>
+    generateTeamCostSummary(p.get("start") ?? "", p.get("end") ?? ""),
 };
 
 function randomDelay(): number {
