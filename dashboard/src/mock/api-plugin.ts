@@ -28,6 +28,12 @@ import {
   generateRunHeatmap,
   generateAgentAdoption,
 } from "./usage-capacity";
+import {
+  generateTeamList,
+  generateTeamSummary,
+  generateTeamTopAgents,
+  generateTeamUserActivity,
+} from "./team-drilldown";
 
 type RouteHandler = (params: URLSearchParams) => unknown;
 
@@ -76,6 +82,26 @@ const routes: Record<string, RouteHandler> = {
   "run-heatmap": (p) =>
     generateRunHeatmap(p.get("start") ?? "", p.get("end") ?? ""),
   "agent-adoption": () => generateAgentAdoption(),
+  "team-list": () => generateTeamList(),
+  "team-summary": (p) =>
+    generateTeamSummary(
+      p.get("team_id") ?? "",
+      p.get("start") ?? "",
+      p.get("end") ?? "",
+    ),
+  "team-top-agents": (p) =>
+    generateTeamTopAgents(
+      p.get("team_id") ?? "",
+      p.get("start") ?? "",
+      p.get("end") ?? "",
+      Number(p.get("limit") ?? "10"),
+    ),
+  "team-user-activity": (p) =>
+    generateTeamUserActivity(
+      p.get("team_id") ?? "",
+      p.get("start") ?? "",
+      p.get("end") ?? "",
+    ),
 };
 
 function randomDelay(): number {
