@@ -7,22 +7,13 @@ driver, month-end forecasting, budget burn rate, and a per-team cost summary tab
 several widget endpoints from the Executive Summary spec and adds Cost Explorer-specific ones.
 
 For auth, query parameters, caching, and error handling conventions, see
-[backend-spec-common.md](backend-spec-common.md).
+[backend-spec-common.md](backend-spec-common.md). For functional requirements, see
+[requirements-spec.md](requirements-spec.md). For API contracts and response schemas, see
+[api-reference.md](api-reference.md).
 
 ---
 
-## Reused Endpoints
-
-These endpoints are defined in the Executive Summary spec and reused here without changes:
-
-| Endpoint | Cost Explorer usage |
-|----------|---------------------|
-| `GET /api/v1/widgets/spend-kpi?start=...&end=...` | Spend KPI card (total spend, delta, budget comparison) |
-| `GET /api/v1/widgets/monthly-spend` | Not directly shown but available for context |
-
----
-
-## New Endpoints
+## Endpoints
 
 ### 1. Daily Spend Time-Series
 
@@ -69,44 +60,6 @@ DailyCostRollup
 | order by bucket asc
 ```
 
-#### Response
-
-```json
-{
-  "start": "2025-02-01",
-  "end": "2025-03-01",
-  "dimension": "team",
-  "granularity": "daily",
-  "series": [
-    {
-      "key": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-      "label": "ML Infra",
-      "data": [
-        { "date": "2025-02-01", "spend_usd": 720.50 },
-        { "date": "2025-02-02", "spend_usd": 680.00 },
-        "..."
-      ]
-    },
-    {
-      "key": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
-      "label": "Data Eng",
-      "data": [
-        { "date": "2025-02-01", "spend_usd": 490.25 },
-        "..."
-      ]
-    },
-    {
-      "key": "c3d4e5f6-a7b8-9012-cdef-123456789012",
-      "label": "Platform Team",
-      "data": [
-        { "date": "2025-02-01", "spend_usd": 380.00 },
-        "..."
-      ]
-    }
-  ]
-}
-```
-
 When `dimension=agent_type`, `key` and `label` are both the agent type string (e.g.
 `"code-reviewer-v3"`), no Graph API resolution needed.
 
@@ -141,24 +94,6 @@ RunCosts
 Note: `storage_usd` and `egress_usd` may be zero or absent in `cost_breakdown` if the Billing
 System doesn't break them out. The API returns them as `0.00` when absent, and an `other_usd`
 field captures any remainder (`total - compute - token - storage - egress`).
-
-#### Response
-
-```json
-{
-  "start": "2025-02-01",
-  "end": "2025-03-01",
-  "total_usd": 47200.00,
-  "drivers": [
-    { "driver": "tokens", "spend_usd": 30128.00, "pct": 63.8 },
-    { "driver": "compute", "spend_usd": 12272.00, "pct": 26.0 },
-    { "driver": "storage", "spend_usd": 3304.00, "pct": 7.0 },
-    { "driver": "egress", "spend_usd": 1496.00, "pct": 3.2 }
-  ]
-}
-```
-
-If `other_usd > 0`, an additional `{ "driver": "other", ... }` entry is included.
 
 #### Cache
 
@@ -198,32 +133,8 @@ DailyCostRollup
    - `month_progress_pct` = `days_elapsed / days_in_month * 100`
    - `on_track` = `burn_pct <= month_progress_pct + 5` (within 5pp tolerance)
 
-#### Response
-
-```json
-{
-  "month": "2025-03",
-  "days_elapsed": 18,
-  "days_in_month": 31,
-  "spent_so_far_usd": 30100.00,
-  "daily_run_rate_usd": 1672.22,
-  "forecast": {
-    "projected_usd": 51838.89,
-    "projected_over_budget_usd": 6838.89,
-    "projected_budget_pct": 115.2
-  },
-  "burn_rate": {
-    "budget_usd": 45000.00,
-    "burn_pct": 66.9,
-    "month_progress_pct": 58.1,
-    "on_track": false
-  }
-}
-```
-
-If no budget is set, `burn_rate.budget_usd` is `null`, `burn_rate.burn_pct` is `null`,
-and `forecast.projected_over_budget_usd` / `forecast.projected_budget_pct` are `null`.
-`forecast.projected_usd` is always returned since it doesn't depend on a budget.
+If no budget is set, budget-dependent fields (`burn_pct`, `projected_over_budget_usd`,
+`projected_budget_pct`) return `null`. `projected_usd` is always returned.
 
 #### Cache
 
@@ -239,7 +150,7 @@ GET /api/v1/widgets/team-cost-summary?start=2025-02-01&end=2025-03-01
 ```
 
 Returns all teams (not just top 3) with spend, run count, avg cost/run, prior-period delta,
-and share of total spend. Powers the summary table.
+and share of total spend.
 
 #### KQL — `DailyCostRollup` + `DailyRollup`
 
@@ -272,45 +183,6 @@ current_cost
 
 Total spend is computed in application code to calculate each team's `share_pct`.
 
-#### Response
-
-```json
-{
-  "start": "2025-02-01",
-  "end": "2025-03-01",
-  "total_spend_usd": 47200.00,
-  "teams": [
-    {
-      "team_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-      "team_name": "ML Infra",
-      "spend_usd": 21340.00,
-      "run_count": 4210,
-      "avg_cost_per_run": 5.07,
-      "delta_pct": 18.0,
-      "share_pct": 45.2
-    },
-    {
-      "team_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
-      "team_name": "Data Eng",
-      "spend_usd": 14780.00,
-      "run_count": 5102,
-      "avg_cost_per_run": 2.90,
-      "delta_pct": -3.0,
-      "share_pct": 31.3
-    },
-    {
-      "team_id": "c3d4e5f6-a7b8-9012-cdef-123456789012",
-      "team_name": "Platform Team",
-      "spend_usd": 11080.00,
-      "run_count": 3535,
-      "avg_cost_per_run": 3.13,
-      "delta_pct": -1.0,
-      "share_pct": 23.5
-    }
-  ]
-}
-```
-
 #### Cache
 
 - Key: `team-cost-summary:{tenant_id}:{start}:{end}`
@@ -327,14 +199,3 @@ Beyond the [common error handling](backend-spec-common.md):
 | Invalid `dimension` value | 400 | `{ "error": "invalid_param", "message": "dimension must be 'team' or 'agent_type'" }` |
 | Invalid `granularity` value | 400 | `{ "error": "invalid_param", "message": "granularity must be 'daily', 'weekly', or 'monthly'" }` |
 
----
-
-## Widget Reusability
-
-| Endpoint | Also used by |
-|----------|--------------|
-| `daily-spend` | Team Drill-Down (filtered to single team) |
-| `spend-breakdown` | Team Drill-Down (filtered to single team) |
-| `team-cost-summary` | Team Drill-Down (as context for team selection) |
-| `spend-kpi` | Executive Summary |
-| `budget-forecast` | Executive Summary (if budget widget is added) |

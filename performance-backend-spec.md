@@ -7,19 +7,13 @@ categorization, slowest agents, and failure hotspots. It reuses the `success-rat
 the Executive Summary spec and adds performance-specific endpoints.
 
 For auth, query parameters, caching, and error handling conventions, see
-[backend-spec-common.md](backend-spec-common.md).
+[backend-spec-common.md](backend-spec-common.md). For functional requirements, see
+[requirements-spec.md](requirements-spec.md). For API contracts and response schemas, see
+[api-reference.md](api-reference.md).
 
 ---
 
-## Reused Endpoints
-
-| Endpoint | Performance view usage |
-|----------|------------------------|
-| `GET /api/v1/widgets/success-rate?start=...&end=...` | Success Rate KPI card (rate + delta) |
-
----
-
-## New Endpoints
+## Endpoints
 
 ### 1. Latency KPI
 
@@ -49,24 +43,6 @@ AgentRuns
 
 Application code computes deltas: `delta_ms = current - prior` for each percentile.
 
-#### Response
-
-```json
-{
-  "start": "2025-02-01",
-  "end": "2025-03-01",
-  "p50_ms": 1200,
-  "p95_ms": 4800,
-  "p99_ms": 12100,
-  "prior_p50_ms": 1280,
-  "prior_p95_ms": 4480,
-  "prior_p99_ms": 10700,
-  "delta_p50_ms": -80,
-  "delta_p95_ms": 320,
-  "delta_p99_ms": 1400
-}
-```
-
 #### Cache
 
 - Key: `latency-kpi:{tenant_id}:{start}:{end}`
@@ -90,20 +66,6 @@ DailyRollup
 | where day between (datetime({start}) .. datetime({end}))
 | project day, completed = completed_count, failed = failed_count
 | order by day asc
-```
-
-#### Response
-
-```json
-{
-  "start": "2025-02-01",
-  "end": "2025-03-01",
-  "daily": [
-    { "date": "2025-02-01", "completed": 610, "failed": 32 },
-    { "date": "2025-02-02", "completed": 558, "failed": 22 },
-    "..."
-  ]
-}
 ```
 
 #### Cache
@@ -132,23 +94,6 @@ DailyErrorRollup
 ```
 
 Application code computes `pct` for each error code relative to total failures.
-
-#### Response
-
-```json
-{
-  "start": "2025-02-01",
-  "end": "2025-03-01",
-  "total_failures": 1130,
-  "errors": [
-    { "error_code": "CONTEXT_LIMIT_EXCEEDED", "count": 429, "pct": 38.0 },
-    { "error_code": "TIMEOUT", "count": 271, "pct": 24.0 },
-    { "error_code": "OOM", "count": 203, "pct": 18.0 },
-    { "error_code": "LOGIC_ERROR", "count": 136, "pct": 12.0 },
-    { "error_code": "INFRA_FAULT", "count": 91, "pct": 8.0 }
-  ]
-}
-```
 
 #### Cache
 
@@ -184,20 +129,6 @@ DailyAgentRollup
 Note: cross-agent aggregation uses `avg` for p50 (weighted approximation) and `max` for
 p95/p99 (conservative upper bound). For exact period-wide percentiles, use the `latency-kpi`
 endpoint which queries raw `AgentRuns`.
-
-#### Response
-
-```json
-{
-  "start": "2025-02-01",
-  "end": "2025-03-01",
-  "daily": [
-    { "date": "2025-02-01", "p50_ms": 1150, "p95_ms": 4600, "p99_ms": 11200 },
-    { "date": "2025-02-02", "p50_ms": 1220, "p95_ms": 4900, "p99_ms": 12500 },
-    "..."
-  ]
-}
-```
 
 #### Cache
 
@@ -238,22 +169,6 @@ DailyAgentRollup
 Average duration is computed from pre-aggregated sums (`sum_duration_ms / run_count`).
 p95 uses `max` across days as a conservative upper bound.
 
-#### Response
-
-```json
-{
-  "start": "2025-02-01",
-  "end": "2025-03-01",
-  "agents": [
-    { "agent_type": "deep-analyzer-v2", "avg_duration_ms": 18400, "p95_duration_ms": 32100, "run_count": 312 },
-    { "agent_type": "code-reviewer-v3", "avg_duration_ms": 12100, "p95_duration_ms": 22400, "run_count": 1847 },
-    { "agent_type": "security-scanner-v1", "avg_duration_ms": 9800, "p95_duration_ms": 18200, "run_count": 502 },
-    { "agent_type": "doc-generator-v2", "avg_duration_ms": 8500, "p95_duration_ms": 15600, "run_count": 1203 },
-    { "agent_type": "test-writer-v1", "avg_duration_ms": 7200, "p95_duration_ms": 13800, "run_count": 2105 }
-  ]
-}
-```
-
 #### Cache
 
 - Key: `slowest-agents:{tenant_id}:{start}:{end}:{limit}`
@@ -267,7 +182,7 @@ p95 uses `max` across days as a conservative upper bound.
 GET /api/v1/widgets/failure-hotspots?start=2025-02-01&end=2025-03-01
 ```
 
-Returns failure rate matrix: agent type x team. Powers the heatmap table.
+Returns failure rate matrix: agent type x team.
 
 #### KQL — `DailyAgentRollup`
 
@@ -283,30 +198,8 @@ DailyAgentRollup
 | order by failure_rate_pct desc
 ```
 
-#### Response
-
-```json
-{
-  "start": "2025-02-01",
-  "end": "2025-03-01",
-  "teams": [
-    { "team_id": "uuid-1", "team_name": "ML Infra" },
-    { "team_id": "uuid-2", "team_name": "Data Eng" },
-    { "team_id": "uuid-3", "team_name": "Platform Team" }
-  ],
-  "cells": [
-    { "agent_type": "code-reviewer-v3", "team_id": "uuid-1", "failure_rate_pct": 1.2, "failed": 14, "total": 1167 },
-    { "agent_type": "code-reviewer-v3", "team_id": "uuid-2", "failure_rate_pct": 0.8, "failed": 5, "total": 625 },
-    { "agent_type": "code-reviewer-v3", "team_id": "uuid-3", "failure_rate_pct": 1.1, "failed": 6, "total": 545 },
-    { "agent_type": "deep-analyzer-v2", "team_id": "uuid-1", "failure_rate_pct": 8.4, "failed": 26, "total": 310 },
-    { "agent_type": "deep-analyzer-v2", "team_id": "uuid-2", "failure_rate_pct": 2.1, "failed": 4, "total": 190 },
-    "..."
-  ]
-}
-```
-
-The `teams` array provides the column headers. The `cells` array is a flat list that the SPA
-pivots into a matrix. Cells with zero runs for a combination are omitted.
+The `teams` array in the response provides column headers. The `cells` array is a flat list
+that the SPA pivots into a matrix. Cells with zero runs for a combination are omitted.
 
 #### Cache
 
@@ -326,8 +219,6 @@ Beyond the [common error handling](backend-spec-common.md):
 
 ---
 
----
-
 ## Query Performance
 
 Most endpoints use pre-aggregated rollup tables and have no retention limit:
@@ -344,23 +235,9 @@ Most endpoints use pre-aggregated rollup tables and have no retention limit:
 
 Only `latency-kpi` queries raw `AgentRuns` because period-wide percentiles (e.g., 30-day p50)
 can't be derived from daily pre-computed percentiles. For ranges exceeding 90 days, `latency-kpi`
-returns a 400 error:
-`{ "error": "range_exceeds_retention", "message": "Period-wide latency percentiles are limited to the 90-day hot window" }`.
+returns a 400 error.
 
 Note: `latency-distribution` and `slowest-agents` use pre-computed daily percentiles from
 `DailyAgentRollup`. Cross-day aggregation uses `max` for p95/p99 (conservative upper bound)
 rather than exact percentiles, which is acceptable for trend visualization and ranking.
 
----
-
-## Widget Reusability
-
-| Endpoint | Also used by |
-|----------|--------------|
-| `success-rate` | Executive Summary |
-| `success-failure-timeseries` | Team Drill-Down (filtered to single team) |
-| `error-taxonomy` | Team Drill-Down (filtered to single team) |
-| `slowest-agents` | Team Drill-Down (filtered to single team) |
-| `failure-hotspots` | — (Performance view only) |
-| `latency-kpi` | — (Performance view only) |
-| `latency-distribution` | — (Performance view only) |

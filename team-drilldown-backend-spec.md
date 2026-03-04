@@ -7,11 +7,13 @@ active users), top agents breakdown, and per-user activity. All team-scoped endp
 `team_id` query parameter.
 
 For auth, query parameters, caching, and error handling conventions, see
-[backend-spec-common.md](backend-spec-common.md).
+[backend-spec-common.md](backend-spec-common.md). For functional requirements, see
+[requirements-spec.md](requirements-spec.md). For API contracts and response schemas, see
+[api-reference.md](api-reference.md).
 
 ---
 
-## New Endpoints
+## Endpoints
 
 ### 1. Team List
 
@@ -25,18 +27,6 @@ No `start`/`end` params — returns all teams regardless of date range.
 #### Source
 
 Team list is fetched from **Microsoft Graph API** (list groups for the tenant).
-
-#### Response
-
-```json
-{
-  "teams": [
-    { "team_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890", "team_name": "ML Infra" },
-    { "team_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901", "team_name": "Data Eng" },
-    { "team_id": "c3d4e5f6-a7b8-9012-cdef-123456789012", "team_name": "Platform Team" }
-  ]
-}
-```
 
 #### Cache
 
@@ -113,37 +103,6 @@ DailyUserRollup
 
 Application code runs all three KQL queries in parallel and assembles the response.
 
-#### Response
-
-```json
-{
-  "team_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-  "team_name": "ML Infra",
-  "start": "2025-02-01",
-  "end": "2025-03-01",
-  "runs": {
-    "total": 4210,
-    "prior_total": 3890,
-    "delta_pct": 8.2
-  },
-  "spend": {
-    "spend_usd": 21340.00,
-    "prior_spend_usd": 19100.00,
-    "delta_pct": 11.7
-  },
-  "success_rate": {
-    "rate_pct": 94.8,
-    "prior_rate_pct": 93.2,
-    "delta_pp": 1.6
-  },
-  "active_users": {
-    "count": 18,
-    "prior_count": 16,
-    "delta": 2
-  }
-}
-```
-
 #### Cache
 
 - Key: `team-summary:{tenant_id}:{team_id}:{start}:{end}`
@@ -193,47 +152,6 @@ DailyCostRollup
 
 Application code joins the two results by `agent_type`.
 
-#### Response
-
-```json
-{
-  "team_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-  "team_name": "ML Infra",
-  "start": "2025-02-01",
-  "end": "2025-03-01",
-  "agents": [
-    {
-      "agent_type": "code-reviewer-v3",
-      "run_count": 1420,
-      "success_rate_pct": 97.1,
-      "avg_duration_ms": 4200,
-      "spend_usd": 8120.00
-    },
-    {
-      "agent_type": "test-writer-v1",
-      "run_count": 1105,
-      "success_rate_pct": 96.2,
-      "avg_duration_ms": 7200,
-      "spend_usd": 3940.00
-    },
-    {
-      "agent_type": "deep-analyzer-v2",
-      "run_count": 890,
-      "success_rate_pct": 88.4,
-      "avg_duration_ms": 18400,
-      "spend_usd": 7650.00
-    },
-    {
-      "agent_type": "doc-generator-v2",
-      "run_count": 795,
-      "success_rate_pct": 98.1,
-      "avg_duration_ms": 5100,
-      "spend_usd": 1630.00
-    }
-  ]
-}
-```
-
 #### Cache
 
 - Key: `team-top-agents:{tenant_id}:{team_id}:{start}:{end}:{limit}`
@@ -274,54 +192,6 @@ DailyUserRollup
 
 User display names are resolved via Microsoft Graph API (per common conventions).
 
-#### Response
-
-```json
-{
-  "team_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-  "team_name": "ML Infra",
-  "start": "2025-02-01",
-  "end": "2025-03-01",
-  "users": [
-    {
-      "user_id": "d4e5f6a7-b8c9-0123-defg-456789012345",
-      "user_name": "Sarah Chen",
-      "run_count": 842,
-      "last_active": "2025-03-01T08:14:00Z",
-      "success_rate_pct": 97.8
-    },
-    {
-      "user_id": "e5f6a7b8-c9d0-1234-efgh-567890123456",
-      "user_name": "James Park",
-      "run_count": 631,
-      "last_active": "2025-03-01T05:22:00Z",
-      "success_rate_pct": 96.2
-    },
-    {
-      "user_id": "f6a7b8c9-d0e1-2345-fghi-678901234567",
-      "user_name": "Maria Lopez",
-      "run_count": 518,
-      "last_active": "2025-02-28T10:45:00Z",
-      "success_rate_pct": 95.1
-    },
-    {
-      "user_id": "a7b8c9d0-e1f2-3456-ghij-789012345678",
-      "user_name": "Alex Novak",
-      "run_count": 445,
-      "last_active": "2025-03-01T07:30:00Z",
-      "success_rate_pct": 89.4
-    },
-    {
-      "user_id": "b8c9d0e1-f2a3-4567-hijk-890123456789",
-      "user_name": "Priya Sharma",
-      "run_count": 389,
-      "last_active": "2025-02-28T22:10:00Z",
-      "success_rate_pct": 98.5
-    }
-  ]
-}
-```
-
 #### Cache
 
 - Key: `team-user-activity:{tenant_id}:{team_id}:{start}:{end}`
@@ -351,13 +221,3 @@ Beyond the [common error handling](backend-spec-common.md):
 
 All endpoints use pre-aggregated rollup tables. No raw table queries, no retention limits.
 
----
-
-## Widget Reusability
-
-| Endpoint | Also used by |
-|----------|--------------|
-| `team-list` | Any view needing a team selector |
-| `team-summary` | — (Team Drill-Down only) |
-| `team-top-agents` | — (Team Drill-Down only) |
-| `team-user-activity` | — (Team Drill-Down only) |

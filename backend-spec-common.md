@@ -1,6 +1,8 @@
 # Backend Spec: Common Conventions
 
-Shared conventions for all dashboard widget endpoints.
+Shared conventions for all dashboard widget endpoints. For functional requirements, see
+[requirements-spec.md](requirements-spec.md). For API contracts without implementation details,
+see [api-reference.md](api-reference.md).
 
 ---
 
@@ -28,6 +30,7 @@ Endpoints that show data for a user-selected period accept:
 **Validation rules:**
 - `end >= start`
 - Maximum span: 365 days
+- `start` must not be earlier than 2 years ago
 - `end` must not be in the future
 
 **Prior-period comparison** is automatic. The API computes a prior period of equal length:

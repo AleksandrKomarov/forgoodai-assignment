@@ -6,7 +6,9 @@ The Executive Summary is the default landing page of the analytics dashboard. It
 KPIs, spend trends, run volume, and top cost centers.
 
 For auth, query parameters, caching, and error handling conventions, see
-[backend-spec-common.md](backend-spec-common.md).
+[backend-spec-common.md](backend-spec-common.md). For functional requirements, see
+[requirements-spec.md](requirements-spec.md). For API contracts and response schemas, see
+[api-reference.md](api-reference.md).
 
 ---
 
@@ -37,32 +39,6 @@ Application code (not KQL):
 1. Take the last 3 complete months of actual spend
 2. Compute average monthly spend
 3. Project that average forward for 3 months
-
-#### Response
-
-```json
-{
-  "monthly_spend": [
-    { "period": "2024-04", "total_usd": 12340.50 },
-    { "period": "2024-05", "total_usd": 13100.00 },
-    { "period": "2024-06", "total_usd": 11800.75 },
-    { "period": "2024-07", "total_usd": 12900.00 },
-    { "period": "2024-08", "total_usd": 14200.25 },
-    { "period": "2024-09", "total_usd": 13500.00 },
-    { "period": "2024-10", "total_usd": 15100.50 },
-    { "period": "2024-11", "total_usd": 14800.00 },
-    { "period": "2024-12", "total_usd": 16200.75 },
-    { "period": "2025-01", "total_usd": 15900.00 },
-    { "period": "2025-02", "total_usd": 17100.25 },
-    { "period": "2025-03", "total_usd": 16400.50 }
-  ],
-  "monthly_spend_forecast": [
-    { "period": "2025-04", "projected_usd": 16467.58 },
-    { "period": "2025-05", "projected_usd": 16467.58 },
-    { "period": "2025-06", "projected_usd": 16467.58 }
-  ]
-}
-```
 
 #### Cache
 
@@ -98,21 +74,6 @@ DailyRollup
 
 Application code extracts the two rows (`is_current = true/false`) and computes
 `delta_pp = current_rate_pct - prior_rate_pct` (percentage-point change).
-
-#### Response
-
-```json
-{
-  "start": "2025-02-01",
-  "end": "2025-03-01",
-  "rate_pct": 94.2,
-  "completed": 18420,
-  "failed": 1130,
-  "total": 19550,
-  "prior_rate_pct": 92.8,
-  "delta_pp": 1.4
-}
-```
 
 #### Cache
 
@@ -150,24 +111,6 @@ DailyRollup
 
 Application code computes `delta_pct = (total_runs - prior_total_runs) / prior_total_runs * 100`.
 
-#### Response
-
-```json
-{
-  "start": "2025-02-01",
-  "end": "2025-03-01",
-  "total_runs": 19550,
-  "prior_total_runs": 17800,
-  "delta_pct": 9.8,
-  "daily": [
-    { "date": "2025-02-01", "count": 642 },
-    { "date": "2025-02-02", "count": 580 },
-    { "date": "2025-02-03", "count": 710 },
-    "..."
-  ]
-}
-```
-
 #### Cache
 
 - Key: `run-volume:{tenant_id}:{start}:{end}`
@@ -202,38 +145,6 @@ DailyCostRollup
   by team_id
 | extend delta_pct = round((spend_usd - prior_spend_usd) / prior_spend_usd * 100, 1)
 | top 3 by spend_usd desc
-```
-
-#### Response
-
-```json
-{
-  "start": "2025-02-01",
-  "end": "2025-03-01",
-  "teams": [
-    {
-      "team_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
-      "team_name": "ML Platform",
-      "spend_usd": 18200.00,
-      "run_count": 8420,
-      "delta_pct": 12.3
-    },
-    {
-      "team_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901",
-      "team_name": "Data Engineering",
-      "spend_usd": 14100.00,
-      "run_count": 6200,
-      "delta_pct": -3.1
-    },
-    {
-      "team_id": "c3d4e5f6-a7b8-9012-cdef-123456789012",
-      "team_name": "Backend Services",
-      "spend_usd": 9800.00,
-      "run_count": 4930,
-      "delta_pct": 5.7
-    }
-  ]
-}
 ```
 
 #### Cache
@@ -277,35 +188,8 @@ The API matches the budget record for the period that overlaps with the selected
 - If the selected range spans multiple months, the budget for the month containing `end` is used
 - If no budget is set, `budget_usd` and `budget_utilization_pct` return `null`
 
-#### Response
-
-```json
-{
-  "start": "2025-02-01",
-  "end": "2025-03-01",
-  "spend_usd": 42100.00,
-  "prior_spend_usd": 38900.00,
-  "delta_pct": 8.2,
-  "budget_usd": 45000.00,
-  "budget_utilization_pct": 93.6
-}
-```
-
 #### Cache
 
 - Key: `spend-kpi:{tenant_id}:{start}:{end}`, TTL 60 seconds
 - Budget cached separately: `budget:{tenant_id}:{period}`, TTL 5 minutes
 
----
-
-## Widget Reusability
-
-These endpoints are not exclusive to the Executive Summary. Other dashboard views can reuse them:
-
-| Endpoint            | Also used by            |
-|---------------------|-------------------------|
-| `spend-kpi`         | Cost Explorer           |
-| `top-cost-centers`  | Cost Explorer           |
-| `success-rate`      | Performance & Reliability |
-| `run-volume`        | Usage & Capacity        |
-| `monthly-spend`     | Cost Explorer           |

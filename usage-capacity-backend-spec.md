@@ -7,19 +7,13 @@ The Usage & Capacity view surfaces adoption metrics (active teams/users), concur
 It reuses the `run-volume` widget from the Executive Summary spec and adds usage-specific endpoints.
 
 For auth, query parameters, caching, and error handling conventions, see
-[backend-spec-common.md](backend-spec-common.md).
+[backend-spec-common.md](backend-spec-common.md). For functional requirements, see
+[requirements-spec.md](requirements-spec.md). For API contracts and response schemas, see
+[api-reference.md](api-reference.md).
 
 ---
 
-## Reused Endpoints
-
-| Endpoint | Usage & Capacity usage |
-|----------|------------------------|
-| `GET /api/v1/widgets/run-volume?start=...&end=...` | Total runs KPI context (total + delta) |
-
----
-
-## New Endpoints
+## Endpoints
 
 ### 1. Active Users & Teams
 
@@ -58,20 +52,6 @@ DailyRollup
 
 `total_teams` is fetched from Microsoft Graph API (count of groups in the tenant).
 
-#### Response
-
-```json
-{
-  "start": "2025-02-01",
-  "end": "2025-03-01",
-  "active_users": 47,
-  "prior_active_users": 42,
-  "delta_users": 5,
-  "active_teams": 3,
-  "total_teams": 3
-}
-```
-
 #### Cache
 
 - Key: `active-users:{tenant_id}:{start}:{end}`
@@ -106,23 +86,6 @@ Tenant concurrency limit is fetched from the `tenant-quotas` Cosmos DB container
 - Cosmos query: `SELECT * FROM c WHERE c.tenant_id = "{tenant_id}"`
 - If no quota is set, `concurrency_limit` returns `null`
 
-#### Response
-
-```json
-{
-  "start": "2025-02-01",
-  "end": "2025-03-01",
-  "concurrency_limit": 50,
-  "peak_in_period": 34,
-  "daily": [
-    { "date": "2025-02-01", "peak_concurrent": 28 },
-    { "date": "2025-02-02", "peak_concurrent": 34 },
-    { "date": "2025-02-03", "peak_concurrent": 31 },
-    "..."
-  ]
-}
-```
-
 `peak_in_period` is the max across all daily values (computed in application code).
 
 #### Cache
@@ -149,20 +112,6 @@ DailyRollup
 | where day between (datetime({start}) .. datetime({end}))
 | summarize run_count = sum(completed_count) + sum(failed_count) by team_id
 | order by run_count desc
-```
-
-#### Response
-
-```json
-{
-  "start": "2025-02-01",
-  "end": "2025-03-01",
-  "teams": [
-    { "team_id": "b2c3d4e5-f6a7-8901-bcde-f12345678901", "team_name": "Data Eng", "run_count": 5102 },
-    { "team_id": "a1b2c3d4-e5f6-7890-abcd-ef1234567890", "team_name": "ML Infra", "run_count": 4210 },
-    { "team_id": "c3d4e5f6-a7b8-9012-cdef-123456789012", "team_name": "Platform Team", "run_count": 3535 }
-  ]
-}
 ```
 
 #### Cache
@@ -194,23 +143,8 @@ HourlyRollup
 
 `dayofweek()` returns a timespan; dividing by `1d` gives 0 (Sunday) through 6 (Saturday).
 
-#### Response
-
-```json
-{
-  "start": "2025-02-01",
-  "end": "2025-03-01",
-  "cells": [
-    { "day_of_week": 0, "hour_of_day": 0, "run_count": 42 },
-    { "day_of_week": 0, "hour_of_day": 1, "run_count": 38 },
-    { "day_of_week": 0, "hour_of_day": 2, "run_count": 29 },
-    "..."
-  ]
-}
-```
-
-The `cells` array is a flat list (7 days × 24 hours = 168 entries). The SPA pivots it into the
-heatmap grid. Cells with zero runs are included for completeness.
+The result is a flat list (7 days × 24 hours = 168 entries). Cells with zero runs are
+included for completeness.
 
 #### Cache
 
@@ -245,25 +179,6 @@ DailyAgentRollup
 To identify types new in the current month, the query filters `first_seen >= startofmonth(now())`.
 Application code extracts the current month entry for the KPI card.
 
-#### Response
-
-```json
-{
-  "months": [
-    { "month": "2024-10", "new_count": 1, "new_types": ["log-analyzer-v1"] },
-    { "month": "2024-11", "new_count": 3, "new_types": ["doc-generator-v2", "test-writer-v1", "security-scanner-v1"] },
-    { "month": "2024-12", "new_count": 1, "new_types": ["deep-analyzer-v2"] },
-    { "month": "2025-01", "new_count": 2, "new_types": ["code-reviewer-v3", "summarizer-v1"] },
-    { "month": "2025-02", "new_count": 2, "new_types": ["security-scanner-v2", "summarizer-v1"] }
-  ],
-  "current_month": {
-    "month": "2025-03",
-    "new_count": 2,
-    "new_types": ["security-scanner-v2", "summarizer-v1"]
-  }
-}
-```
-
 #### Cache
 
 - Key: `agent-adoption:{tenant_id}`
@@ -295,15 +210,3 @@ Beyond the [common error handling](backend-spec-common.md):
 Only `concurrency-timeseries` and `run-heatmap` use `HourlyRollup` (90-day retention).
 All other endpoints use daily rollup tables retained for 2 years.
 
----
-
-## Widget Reusability
-
-| Endpoint | Also used by |
-|----------|--------------|
-| `run-volume` | Executive Summary |
-| `active-users` | Team Drill-Down (filtered to single team) |
-| `run-volume-by-team` | — (Usage view only) |
-| `concurrency-timeseries` | — (Usage view only) |
-| `run-heatmap` | — (Usage view only) |
-| `agent-adoption` | — (Usage view only) |
