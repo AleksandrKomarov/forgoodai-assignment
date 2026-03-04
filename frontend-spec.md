@@ -198,7 +198,7 @@ Default landing page. 5 API calls on mount.
 
 | Widget | API Endpoint | Chart Type |
 |--------|-------------|------------|
-| Monthly Spend KPI | `spend-kpi` | KPI card |
+| Accumulated Spend KPI | `spend-kpi` | KPI card |
 | Total Runs KPI | `run-volume` | KPI card (total + delta from response) |
 | Success Rate KPI | `success-rate` | KPI card |
 | Projected Month-End KPI | `budget-forecast` | KPI card |
@@ -334,10 +334,10 @@ format rules these implement.
 | Function | Purpose | Example |
 |----------|---------|---------|
 | `formatCurrencyCompact` | Abbreviated currency for KPIs | `$47.2K`, `$1.2M` |
-| `formatCurrencyFull` | Full currency with thousands separator | `$21,340` |
+| `formatCurrencyFull` | Full currency with locale-aware thousands separator | `$21,340` |
 | `formatCurrencyPrecise` | Two-decimal currency for per-unit costs | `$5.07` |
 | `formatPercent` | Percentage with one decimal | `96.3%` |
-| `formatCount` | Integer with thousands separator | `12,847` |
+| `formatCount` | Integer with locale-aware thousands separator | `12,847` |
 | `formatSignedPercent` | Signed percentage for deltas | `+8.3%`, `-2.1%` |
 | `formatDuration` | Duration from ms to seconds | `4.2s` |
 | `formatRelativeTime` | Relative timestamp | `2 hours ago` |

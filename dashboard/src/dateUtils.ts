@@ -18,6 +18,12 @@ export function addDays(dateStr: string, days: number) {
   return toDateString(d);
 }
 
+export function daysBetween(a: string, b: string) {
+  return Math.round(
+    (new Date(b).getTime() - new Date(a).getTime()) / 86_400_000,
+  ) + 1;
+}
+
 const MAX_HISTORY_YEARS = 2;
 
 export function earliestDate() {

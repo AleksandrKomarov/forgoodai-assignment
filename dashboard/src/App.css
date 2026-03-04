@@ -242,3 +242,15 @@ body {
   padding: 6px 14px; border: 1px solid var(--border); border-radius: 6px;
   background: var(--surface); font-size: 13px; cursor: pointer;
 }
+
+/* Skeleton */
+.skeleton {
+  height: 80px; border-radius: 8px;
+  background: linear-gradient(90deg, var(--border) 25%, #f0f0f0 50%, var(--border) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+@keyframes shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

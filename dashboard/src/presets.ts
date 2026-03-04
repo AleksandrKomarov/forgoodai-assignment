@@ -12,20 +12,20 @@ export interface PresetDefinition {
 export const defaultPreset: PresetDefinition = {
   key: "30d",
   label: "Last 30 days",
-  computeRange: () => ({ start: daysAgo(30), end: today() }),
+  computeRange: () => ({ start: daysAgo(29), end: today() }),
 };
 
 export const presets: PresetDefinition[] = [
   {
     key: "7d",
     label: "Last 7 days",
-    computeRange: () => ({ start: daysAgo(7), end: today() }),
+    computeRange: () => ({ start: daysAgo(6), end: today() }),
   },
   defaultPreset,
   {
     key: "90d",
     label: "Last 90 days",
-    computeRange: () => ({ start: daysAgo(90), end: today() }),
+    computeRange: () => ({ start: daysAgo(89), end: today() }),
   },
   {
     key: "this-month",

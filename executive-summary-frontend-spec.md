@@ -166,18 +166,20 @@ function useTopCostCenters(start: string, end: string) {
 
 | Element | Source field | Format | Example |
 |---------|-------------|--------|---------|
-| Label | static | — | `MONTHLY SPEND` |
+| Label | dynamic | `Accumulated Spend ({days}d)` | `Accumulated Spend (30d)` |
 | Value | `spend_usd` | `formatCurrencyCompact()` | `$47.2K` |
-| Delta | `delta_pct` | `±X.X% vs last month` | `+8.3% vs last month` |
+| Delta | `delta_pct` | `±X.X% vs prior period` | `+8.3% vs prior period` |
+
+`{days}` = `daysBetween(start, end)` from the date range selector.
 
 **Delta color:** Cost increase = **red** (`.kpi-delta.down`). Cost decrease = **green**.
 
 ```html
 <div class="kpi">
-  <div class="kpi-label">Monthly Spend</div>
+  <div class="kpi-label">Accumulated Spend ({days}d)</div>
   <div class="kpi-value">{formatCurrencyCompact(spend_usd)}</div>
   <div class="kpi-delta {getDeltaClass(delta_pct, 'cost')}">
-    {formatSignedPercent(delta_pct)} vs last month
+    {formatSignedPercent(delta_pct)} vs prior period
   </div>
 </div>
 ```
@@ -190,7 +192,7 @@ function useTopCostCenters(start: string, end: string) {
 
 | Element | Source field | Format | Example |
 |---------|-------------|--------|---------|
-| Label | static | — | `TOTAL RUNS (30D)` |
+| Label | dynamic | `Total Runs ({days}d)` | `Total Runs (30d)` |
 | Value | `total_runs` | `formatCount()` | `12,847` |
 | Delta | `delta_pct` | `±X.X% vs prior period` | `+12.1% vs prior period` |
 
@@ -206,7 +208,7 @@ function useTopCostCenters(start: string, end: string) {
 |---------|-------------|--------|---------|
 | Label | static | — | `SUCCESS RATE` |
 | Value | `rate_pct` | `formatPercent()` | `96.3%` |
-| Delta | `delta_pp` | `±X.Xpp vs last month` | `+0.5pp vs last month` |
+| Delta | `delta_pp` | `±X.Xpp vs prior period` | `+0.5pp vs prior period` |
 
 **Value color:** Always `var(--green)`.
 
@@ -246,7 +248,7 @@ Fixed-window — not affected by the date range selector.
 
 **Data source:** `useMonthlySpend()`
 
-**Card title:** `MONTHLY SPEND — LAST 12 MONTHS + 3 MONTH FORECAST`
+**Card title:** `MONTHLY SPEND + 3 MONTH FORECAST`
 
 Vertical bar chart, 15 bars (12 actual + 3 forecast). Chart height: `220px`.
 
@@ -308,7 +310,7 @@ const circumference = 2 * Math.PI * 52;  // ≈ 326.7
 const dashoffset = circumference * (1 - rate_pct / 100);
 ```
 
-Center label: rate value (24px bold) + `"30-day avg"` subtitle (11px).
+Center label: rate value (24px bold) + `"{days}-day avg"` subtitle (11px), where `{days}` reflects the selected date range.
 
 ---
 
@@ -316,7 +318,7 @@ Center label: rate value (24px bold) + `"30-day avg"` subtitle (11px).
 
 **Data source:** `useRunVolume(start, end)` (shared with KPI card)
 
-**Card title:** `RUN VOLUME (30D)`
+**Card title:** `RUN VOLUME ({days}d)` — dynamic, reflects selected date range.
 
 Minimal bar chart — no axes, no labels. Uses `.sparkline` component.
 
@@ -341,12 +343,12 @@ One bar per day in `daily[]`. Height proportional to max count.
 | Column | Source | Format |
 |--------|--------|--------|
 | Team | `team_name` | Bold (`<strong>`) |
-| Spend (30d) | `spend_usd` | `formatCurrencyFull()` → `$21,340` |
+| Spend ({days}d) | `spend_usd` | `formatCurrencyFull()` → `$21,340` |
 | Runs | `run_count` | `formatCount()` → `4,210` |
 | Avg Cost/Run | computed: `spend_usd / run_count` | `formatCurrencyPrecise()` → `$5.07` |
-| Trend | `spend_usd` | Inline bar (`.bar-container`), width proportional to max team spend |
+| Share | `spend_usd` | Inline bar (`.bar-container`) + percentage label (`X.X%`) |
 
-**Trend bar width:** `(team.spend_usd / maxSpend) * 100` percent.
+**Share bar width:** `(team.spend_usd / totalSpend) * 100` percent, where `totalSpend` is the sum of all displayed teams' spend. A percentage label is shown below the bar.
 
 **Note:** `delta_pct` is in the response but NOT displayed here — it's used in the Cost
 Explorer's per-team table instead.

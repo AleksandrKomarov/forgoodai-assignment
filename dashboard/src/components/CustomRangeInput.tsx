@@ -1,13 +1,8 @@
 import { useState, useEffect } from "react";
-import { today, earliestDate } from "../dateUtils";
+import { today, earliestDate, daysBetween } from "../dateUtils";
 import { useDateRange } from "../context/DateRangeContext";
 
 const MAX_SPAN_DAYS = 365;
-
-function daysBetween(a: string, b: string) {
-  const msPerDay = 86_400_000;
-  return Math.round((new Date(b).getTime() - new Date(a).getTime()) / msPerDay);
-}
 
 function validate(start: string, end: string): string | null {
   if (!start || !end) return "Both dates are required";

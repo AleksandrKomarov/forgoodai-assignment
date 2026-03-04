@@ -61,13 +61,13 @@ Sidebar footer displays the tenant (organization) name.
 | Data type | Format | Examples |
 |-----------|--------|---------|
 | Currency (large) | Abbreviated with K suffix | $47.2K |
-| Currency (table) | Full with thousands separator | $21,340 |
+| Currency (table) | Full with locale-aware thousands separator | $21,340 |
 | Percentage | One decimal place | 96.3% |
 | Duration | Seconds with one decimal | 4.2s, 18.4s |
 | Delta (cost/runs) | Signed percentage, color-coded | +8.3% (green), -3.0% (red) |
 | Delta (rates) | Percentage points | +0.5pp, -1.2pp |
 | Timestamp (relative) | Human-readable | 2 hours ago, 1 day ago |
-| Count | Thousands separator | 12,847 |
+| Count | Locale-aware thousands separator | 12,847 |
 
 Delta color coding:
 - Cost/spend: increase = red (bad), decrease = green (good)
@@ -85,7 +85,7 @@ Default landing page. High-level KPIs, spend trends, and top cost centers.
 
 | KPI | Value | Delta |
 |-----|-------|-------|
-| Monthly Spend | Total spend for selected period | % change vs prior period |
+| Accumulated Spend | Total spend for selected period | % change vs prior period |
 | Total Runs | Total completed + failed runs | % change vs prior period |
 | Success Rate | Completed / total runs | Percentage-point change vs prior period |
 | Projected Month-End | Forecasted total spend for current month | Over/under budget amount |
@@ -100,7 +100,7 @@ Default landing page. High-level KPIs, spend trends, and top cost centers.
 ### Success Rate Gauge
 
 - Circular gauge (SVG arc) showing the overall success rate for the selected period
-- Label shows the percentage value and "30-day avg" (or selected period description)
+- Label shows the percentage value and "{days}-day avg" reflecting the selected date range
 
 ### Run Volume Sparkline
 
@@ -115,7 +115,7 @@ Default landing page. High-level KPIs, spend trends, and top cost centers.
 | Spend | Total spend for the period |
 | Runs | Total runs for the period |
 | Avg Cost/Run | Spend / runs |
-| Trend | Inline bar chart showing relative spend |
+| Share | Inline bar + percentage showing relative spend share |
 
 ---
 
