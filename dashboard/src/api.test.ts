@@ -57,4 +57,25 @@ describe("fetchWidget", () => {
     const url = new URL(mockFetch.mock.calls[0]![0] as string);
     expect(url.search).toBe("");
   });
+
+  it("forwards AbortSignal to fetch", async () => {
+    const controller = new AbortController();
+    mockFetch.mockResolvedValue(jsonResponse({ ok: true }));
+
+    await fetchWidget("spend-kpi", undefined, controller.signal);
+
+    expect(mockFetch.mock.calls[0]![1]).toEqual({ signal: controller.signal });
+  });
+
+  it("rejects with AbortError when signal is aborted", async () => {
+    const controller = new AbortController();
+    mockFetch.mockImplementation(() => {
+      throw new DOMException("The operation was aborted.", "AbortError");
+    });
+
+    controller.abort();
+    await expect(
+      fetchWidget("spend-kpi", undefined, controller.signal),
+    ).rejects.toThrow("The operation was aborted.");
+  });
 });

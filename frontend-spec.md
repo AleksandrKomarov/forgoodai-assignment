@@ -161,6 +161,25 @@ back-navigation between views.
 - Auth interceptor attaches JWT on every request
 - Standard error handling: 401 triggers re-auth, 4xx/5xx surfaced via query `error` state
 
+### Request Cancellation
+
+All `queryFn` callbacks destructure the `signal` from TanStack Query's context and forward it to
+`fetchWidget`, which passes it to the browser `fetch()` call:
+
+```ts
+queryFn: ({ signal }) => fetchWidget<T>("endpoint", params, signal)
+```
+
+This ensures in-flight requests are automatically aborted when:
+
+- **Component unmounts** (user navigates to a different view)
+- **Query key changes** (date range, team selection, or filter update) — the stale request is
+  cancelled before the new one fires
+- **Query is disabled** (e.g., `enabled` flips to `false` when range exceeds 90 days)
+
+Aborted fetches are handled by TanStack Query as cancellations, not errors — no error state is
+shown in the UI.
+
 ### Automatic Re-fetch
 
 | Trigger | Mechanism |

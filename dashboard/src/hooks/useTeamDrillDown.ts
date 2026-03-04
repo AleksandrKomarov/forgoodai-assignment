@@ -43,7 +43,7 @@ const GC_TIME = 600_000;
 export function useTeamList() {
   return useQuery({
     queryKey: ["team-list"],
-    queryFn: () => fetchWidget<TeamListData>("team-list"),
+    queryFn: ({ signal }) => fetchWidget<TeamListData>("team-list", undefined, signal),
     staleTime: 900_000, // 15 min per spec
     gcTime: GC_TIME,
   });
@@ -52,12 +52,12 @@ export function useTeamList() {
 export function useTeamSummary(teamId: string, start: string, end: string) {
   return useQuery({
     queryKey: ["team-summary", teamId, start, end],
-    queryFn: () =>
+    queryFn: ({ signal }) =>
       fetchWidget<TeamSummaryData>("team-summary", {
         team_id: teamId,
         start,
         end,
-      }),
+      }, signal),
     staleTime: 60_000,
     gcTime: GC_TIME,
     enabled: !!teamId,
@@ -72,13 +72,13 @@ export function useTeamTopAgents(
 ) {
   return useQuery({
     queryKey: ["team-top-agents", teamId, start, end, limit],
-    queryFn: () =>
+    queryFn: ({ signal }) =>
       fetchWidget<TeamTopAgentsData>("team-top-agents", {
         team_id: teamId,
         start,
         end,
         limit: String(limit),
-      }),
+      }, signal),
     staleTime: 60_000,
     gcTime: GC_TIME,
     enabled: !!teamId,
@@ -92,12 +92,12 @@ export function useTeamUserActivity(
 ) {
   return useQuery({
     queryKey: ["team-user-activity", teamId, start, end],
-    queryFn: () =>
+    queryFn: ({ signal }) =>
       fetchWidget<TeamUserActivityData>("team-user-activity", {
         team_id: teamId,
         start,
         end,
-      }),
+      }, signal),
     staleTime: 60_000,
     gcTime: GC_TIME,
     enabled: !!teamId,

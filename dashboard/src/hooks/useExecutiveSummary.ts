@@ -68,7 +68,7 @@ const GC_TIME = 600_000;
 export function useSpendKpi(start: string, end: string) {
   return useQuery({
     queryKey: ["spend-kpi", start, end],
-    queryFn: () => fetchWidget<SpendKpiData>("spend-kpi", { start, end }),
+    queryFn: ({ signal }) => fetchWidget<SpendKpiData>("spend-kpi", { start, end }, signal),
     staleTime: 30_000,
     gcTime: GC_TIME,
   });
@@ -77,7 +77,7 @@ export function useSpendKpi(start: string, end: string) {
 export function useRunVolume(start: string, end: string) {
   return useQuery({
     queryKey: ["run-volume", start, end],
-    queryFn: () => fetchWidget<RunVolumeData>("run-volume", { start, end }),
+    queryFn: ({ signal }) => fetchWidget<RunVolumeData>("run-volume", { start, end }, signal),
     staleTime: 30_000,
     gcTime: GC_TIME,
   });
@@ -86,7 +86,7 @@ export function useRunVolume(start: string, end: string) {
 export function useSuccessRate(start: string, end: string) {
   return useQuery({
     queryKey: ["success-rate", start, end],
-    queryFn: () => fetchWidget<SuccessRateData>("success-rate", { start, end }),
+    queryFn: ({ signal }) => fetchWidget<SuccessRateData>("success-rate", { start, end }, signal),
     staleTime: 30_000,
     gcTime: GC_TIME,
   });
@@ -95,7 +95,7 @@ export function useSuccessRate(start: string, end: string) {
 export function useBudgetForecast() {
   return useQuery({
     queryKey: ["budget-forecast"],
-    queryFn: () => fetchWidget<BudgetForecastData>("budget-forecast"),
+    queryFn: ({ signal }) => fetchWidget<BudgetForecastData>("budget-forecast", undefined, signal),
     staleTime: 120_000,
     gcTime: GC_TIME,
   });
@@ -104,7 +104,7 @@ export function useBudgetForecast() {
 export function useMonthlySpend() {
   return useQuery({
     queryKey: ["monthly-spend"],
-    queryFn: () => fetchWidget<MonthlySpendData>("monthly-spend"),
+    queryFn: ({ signal }) => fetchWidget<MonthlySpendData>("monthly-spend", undefined, signal),
     staleTime: 120_000,
     gcTime: GC_TIME,
   });
@@ -113,8 +113,8 @@ export function useMonthlySpend() {
 export function useTopCostCenters(start: string, end: string) {
   return useQuery({
     queryKey: ["top-cost-centers", start, end],
-    queryFn: () =>
-      fetchWidget<TopCostCentersData>("top-cost-centers", { start, end }),
+    queryFn: ({ signal }) =>
+      fetchWidget<TopCostCentersData>("top-cost-centers", { start, end }, signal),
     staleTime: 30_000,
     gcTime: GC_TIME,
   });

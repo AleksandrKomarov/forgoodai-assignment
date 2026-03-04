@@ -56,6 +56,13 @@ Sidebar footer displays the tenant (organization) name.
 - Failed widgets show an inline error with a retry option
 - Widgets with no data show a zero-value state ("No data for selected period")
 
+### Request Cancellation
+
+- When a user navigates away from a view, all in-flight API requests for that view are cancelled
+- When query parameters change (date range, team selection, filters), the previous in-flight
+  request is cancelled before the new one fires
+- Cancelled requests do not trigger error states — they are silently discarded
+
 ### Display Formatting
 
 | Data type | Format | Examples |

@@ -45,8 +45,8 @@ export function useDailySpend(
 ) {
   return useQuery({
     queryKey: ["daily-spend", start, end, dimension, granularity],
-    queryFn: () =>
-      fetchWidget<DailySpendData>("daily-spend", { start, end, dimension, granularity }),
+    queryFn: ({ signal }) =>
+      fetchWidget<DailySpendData>("daily-spend", { start, end, dimension, granularity }, signal),
     staleTime: 30_000,
     gcTime: GC_TIME,
   });
@@ -55,8 +55,8 @@ export function useDailySpend(
 export function useSpendBreakdown(start: string, end: string) {
   return useQuery({
     queryKey: ["spend-breakdown", start, end],
-    queryFn: () =>
-      fetchWidget<SpendBreakdownData>("spend-breakdown", { start, end }),
+    queryFn: ({ signal }) =>
+      fetchWidget<SpendBreakdownData>("spend-breakdown", { start, end }, signal),
     staleTime: 30_000,
     gcTime: GC_TIME,
   });
@@ -65,8 +65,8 @@ export function useSpendBreakdown(start: string, end: string) {
 export function useTeamCostSummary(start: string, end: string) {
   return useQuery({
     queryKey: ["team-cost-summary", start, end],
-    queryFn: () =>
-      fetchWidget<TeamCostSummaryData>("team-cost-summary", { start, end }),
+    queryFn: ({ signal }) =>
+      fetchWidget<TeamCostSummaryData>("team-cost-summary", { start, end }, signal),
     staleTime: 30_000,
     gcTime: GC_TIME,
   });

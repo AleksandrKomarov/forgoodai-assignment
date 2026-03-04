@@ -65,8 +65,8 @@ const GC_TIME = 600_000;
 export function usePerfSuccessRate(start: string, end: string) {
   return useQuery({
     queryKey: ["perf-success-rate", start, end],
-    queryFn: () =>
-      fetchWidget<PerfSuccessRateData>("perf-success-rate", { start, end }),
+    queryFn: ({ signal }) =>
+      fetchWidget<PerfSuccessRateData>("perf-success-rate", { start, end }, signal),
     staleTime: 30_000,
     gcTime: GC_TIME,
   });
@@ -76,8 +76,8 @@ export function useLatencyKpi(start: string, end: string) {
   const withinLimit = daysBetween(start, end) <= 90;
   return useQuery({
     queryKey: ["latency-kpi", start, end],
-    queryFn: () =>
-      fetchWidget<LatencyKpiData>("latency-kpi", { start, end }),
+    queryFn: ({ signal }) =>
+      fetchWidget<LatencyKpiData>("latency-kpi", { start, end }, signal),
     staleTime: 30_000,
     gcTime: GC_TIME,
     enabled: withinLimit,
@@ -87,10 +87,11 @@ export function useLatencyKpi(start: string, end: string) {
 export function useSuccessFailureTimeseries(start: string, end: string) {
   return useQuery({
     queryKey: ["success-failure-timeseries", start, end],
-    queryFn: () =>
+    queryFn: ({ signal }) =>
       fetchWidget<SuccessFailureTimeseriesData>(
         "success-failure-timeseries",
         { start, end },
+        signal,
       ),
     staleTime: 30_000,
     gcTime: GC_TIME,
@@ -100,8 +101,8 @@ export function useSuccessFailureTimeseries(start: string, end: string) {
 export function useErrorTaxonomy(start: string, end: string) {
   return useQuery({
     queryKey: ["error-taxonomy", start, end],
-    queryFn: () =>
-      fetchWidget<ErrorTaxonomyData>("error-taxonomy", { start, end }),
+    queryFn: ({ signal }) =>
+      fetchWidget<ErrorTaxonomyData>("error-taxonomy", { start, end }, signal),
     staleTime: 30_000,
     gcTime: GC_TIME,
   });
@@ -110,11 +111,11 @@ export function useErrorTaxonomy(start: string, end: string) {
 export function useLatencyDistribution(start: string, end: string) {
   return useQuery({
     queryKey: ["latency-distribution", start, end],
-    queryFn: () =>
+    queryFn: ({ signal }) =>
       fetchWidget<LatencyDistributionData>("latency-distribution", {
         start,
         end,
-      }),
+      }, signal),
     staleTime: 30_000,
     gcTime: GC_TIME,
   });
@@ -127,12 +128,12 @@ export function useSlowestAgents(
 ) {
   return useQuery({
     queryKey: ["slowest-agents", start, end, limit],
-    queryFn: () =>
+    queryFn: ({ signal }) =>
       fetchWidget<SlowestAgentsData>("slowest-agents", {
         start,
         end,
         limit: String(limit),
-      }),
+      }, signal),
     staleTime: 30_000,
     gcTime: GC_TIME,
   });
@@ -141,8 +142,8 @@ export function useSlowestAgents(
 export function useFailureHotspots(start: string, end: string) {
   return useQuery({
     queryKey: ["failure-hotspots", start, end],
-    queryFn: () =>
-      fetchWidget<FailureHotspotsData>("failure-hotspots", { start, end }),
+    queryFn: ({ signal }) =>
+      fetchWidget<FailureHotspotsData>("failure-hotspots", { start, end }, signal),
     staleTime: 30_000,
     gcTime: GC_TIME,
   });

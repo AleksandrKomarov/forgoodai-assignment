@@ -39,8 +39,8 @@ const GC_TIME = 600_000;
 export function useActiveUsers(start: string, end: string) {
   return useQuery({
     queryKey: ["active-users", start, end],
-    queryFn: () =>
-      fetchWidget<ActiveUsersData>("active-users", { start, end }),
+    queryFn: ({ signal }) =>
+      fetchWidget<ActiveUsersData>("active-users", { start, end }, signal),
     staleTime: 30_000,
     gcTime: GC_TIME,
   });
@@ -50,11 +50,11 @@ export function useConcurrencyTimeseries(start: string, end: string) {
   const withinLimit = daysBetween(start, end) <= 90;
   return useQuery({
     queryKey: ["concurrency-timeseries", start, end],
-    queryFn: () =>
+    queryFn: ({ signal }) =>
       fetchWidget<ConcurrencyTimeseriesData>("concurrency-timeseries", {
         start,
         end,
-      }),
+      }, signal),
     staleTime: 30_000,
     gcTime: GC_TIME,
     enabled: withinLimit,
@@ -64,8 +64,8 @@ export function useConcurrencyTimeseries(start: string, end: string) {
 export function useRunVolumeByTeam(start: string, end: string) {
   return useQuery({
     queryKey: ["run-volume-by-team", start, end],
-    queryFn: () =>
-      fetchWidget<RunVolumeByTeamData>("run-volume-by-team", { start, end }),
+    queryFn: ({ signal }) =>
+      fetchWidget<RunVolumeByTeamData>("run-volume-by-team", { start, end }, signal),
     staleTime: 30_000,
     gcTime: GC_TIME,
   });
@@ -75,8 +75,8 @@ export function useRunHeatmap(start: string, end: string) {
   const withinLimit = daysBetween(start, end) <= 90;
   return useQuery({
     queryKey: ["run-heatmap", start, end],
-    queryFn: () =>
-      fetchWidget<RunHeatmapData>("run-heatmap", { start, end }),
+    queryFn: ({ signal }) =>
+      fetchWidget<RunHeatmapData>("run-heatmap", { start, end }, signal),
     staleTime: 30_000,
     gcTime: GC_TIME,
     enabled: withinLimit,
@@ -86,7 +86,7 @@ export function useRunHeatmap(start: string, end: string) {
 export function useAgentAdoption() {
   return useQuery({
     queryKey: ["agent-adoption"],
-    queryFn: () => fetchWidget<AgentAdoptionData>("agent-adoption"),
+    queryFn: ({ signal }) => fetchWidget<AgentAdoptionData>("agent-adoption", undefined, signal),
     staleTime: 120_000,
     gcTime: GC_TIME,
   });

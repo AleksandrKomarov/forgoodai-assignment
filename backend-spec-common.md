@@ -101,3 +101,10 @@ Individual view specs may document additional endpoint-specific errors (e.g., in
 - Each widget renders independently as its response arrives
 - A failed widget shows an inline error state without blocking other widgets
 - When the user changes the date range, only range-scoped endpoints are re-fetched
+
+## Request Cancellation
+
+The SPA may abort in-flight HTTP requests (via the standard `AbortSignal` mechanism) when the user
+navigates away or changes query parameters. Backend endpoints should handle client disconnects
+gracefully — cancel any running KQL queries when the connection is dropped to avoid unnecessary
+ADX resource consumption.
