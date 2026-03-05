@@ -7,6 +7,7 @@ export default function DateRangeSelector() {
   return (
     <div className="date-range-selector">
       <select
+        aria-label="Date range"
         value={activePreset.key}
         onChange={(e) => setPresetKey(e.target.value)}
       >

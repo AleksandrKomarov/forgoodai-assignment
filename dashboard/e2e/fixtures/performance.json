@@ -1,0 +1,67 @@
+{
+  "perf-success-rate": {
+    "rate_pct": 95.7,
+    "completed": 22850,
+    "failed": 1025,
+    "total": 23875,
+    "prior_rate_pct": 94.9,
+    "delta_pp": 0.8
+  },
+  "latency-kpi": {
+    "p50_ms": 1200,
+    "p95_ms": 4800,
+    "p99_ms": 12500,
+    "prior_p50_ms": 1350,
+    "prior_p95_ms": 5100,
+    "prior_p99_ms": 13200,
+    "delta_p50_ms": -150,
+    "delta_p95_ms": -300,
+    "delta_p99_ms": -700
+  },
+  "success-failure-timeseries": {
+    "daily": [
+      { "date": "2025-02-03", "completed": 780, "failed": 35 },
+      { "date": "2025-02-04", "completed": 810, "failed": 42 },
+      { "date": "2025-02-05", "completed": 750, "failed": 28 }
+    ]
+  },
+  "error-taxonomy": {
+    "total_failures": 1025,
+    "errors": [
+      { "error_code": "CONTEXT_LIMIT_EXCEEDED", "count": 380, "pct": 37.1 },
+      { "error_code": "TIMEOUT", "count": 235, "pct": 22.9 },
+      { "error_code": "OOM", "count": 180, "pct": 17.6 },
+      { "error_code": "LOGIC_ERROR", "count": 130, "pct": 12.7 },
+      { "error_code": "INFRA_FAULT", "count": 100, "pct": 9.7 }
+    ]
+  },
+  "latency-distribution": {
+    "daily": [
+      { "date": "2025-02-03", "p50_ms": 1100, "p95_ms": 4500, "p99_ms": 11800 },
+      { "date": "2025-02-04", "p50_ms": 1250, "p95_ms": 4900, "p99_ms": 12200 },
+      { "date": "2025-02-05", "p50_ms": 1180, "p95_ms": 4700, "p99_ms": 12000 }
+    ]
+  },
+  "slowest-agents": {
+    "agents": [
+      { "agent_type": "deep-analyzer", "avg_duration_ms": 18500, "p95_duration_ms": 28000, "run_count": 450 },
+      { "agent_type": "security-scanner", "avg_duration_ms": 12300, "p95_duration_ms": 19800, "run_count": 890 },
+      { "agent_type": "test-writer", "avg_duration_ms": 8700, "p95_duration_ms": 14200, "run_count": 1200 }
+    ]
+  },
+  "failure-hotspots": {
+    "teams": [
+      { "team_id": "t1", "team_name": "ML Infra" },
+      { "team_id": "t2", "team_name": "Data Eng" },
+      { "team_id": "t3", "team_name": "Platform" }
+    ],
+    "cells": [
+      { "agent_type": "code-reviewer", "team_id": "t1", "failure_rate_pct": 2.1, "failed": 12, "total": 571 },
+      { "agent_type": "code-reviewer", "team_id": "t2", "failure_rate_pct": 5.3, "failed": 28, "total": 528 },
+      { "agent_type": "code-reviewer", "team_id": "t3", "failure_rate_pct": 1.8, "failed": 9, "total": 500 },
+      { "agent_type": "deep-analyzer", "team_id": "t1", "failure_rate_pct": 8.7, "failed": 45, "total": 517 },
+      { "agent_type": "deep-analyzer", "team_id": "t2", "failure_rate_pct": 3.2, "failed": 18, "total": 563 },
+      { "agent_type": "deep-analyzer", "team_id": "t3", "failure_rate_pct": 6.1, "failed": 34, "total": 557 }
+    ]
+  }
+}

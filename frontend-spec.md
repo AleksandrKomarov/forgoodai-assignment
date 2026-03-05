@@ -383,3 +383,30 @@ format rules these implement.
 | `formatDuration` | Duration from ms to seconds | `4.2s` |
 | `formatRelativeTime` | Relative timestamp | `2 hours ago` |
 | `getDeltaClass` | Maps delta + metric type to `"up"` / `"down"` CSS class | see delta color rules |
+
+---
+
+## Testing Strategy
+
+### Unit & Component Tests (Vitest + React Testing Library)
+
+All formatters, API utilities, context logic, and widget components have unit tests. Each widget
+test mocks its data hook and verifies rendering for loading, error, empty, and success states.
+
+### E2E Tests (Playwright)
+
+Playwright tests validate full-page behavior using deterministic API fixtures injected via
+`page.route()` interception. The test suite covers:
+
+| Category | What it validates |
+|----------|-------------------|
+| Smoke | Each page loads, navigation works, no console errors |
+| Page integration | All widgets render with correct data on each of the 5 views |
+| Date range | Preset selection, custom range validation, persistence across navigation |
+| Error handling | Single widget failure isolation, retry button, sibling independence |
+| Responsive layout | Desktop (4-col KPI), tablet (icon sidebar, 2-col), phone (hamburger, 1-col) |
+| Request cancellation | Navigation and date-change abort in-flight requests |
+| Accessibility | axe-core scans per page, keyboard navigation through sidebar |
+
+Configuration: Chromium + mobile Chrome projects. Dev server auto-starts via `webServer` config.
+Test fixtures live in `e2e/fixtures/` with one JSON file per page.

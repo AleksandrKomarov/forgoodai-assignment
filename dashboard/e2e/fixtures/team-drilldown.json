@@ -1,0 +1,36 @@
+{
+  "team-list": {
+    "teams": [
+      { "team_id": "t1-0000-0000-0000-000000000001", "team_name": "ML Platform" },
+      { "team_id": "t2-0000-0000-0000-000000000001", "team_name": "Data Engineering" },
+      { "team_id": "t3-0000-0000-0000-000000000001", "team_name": "Backend Services" },
+      { "team_id": "t4-0000-0000-0000-000000000001", "team_name": "Frontend Platform" },
+      { "team_id": "t5-0000-0000-0000-000000000001", "team_name": "DevOps" },
+      { "team_id": "t6-0000-0000-0000-000000000001", "team_name": "Research" }
+    ]
+  },
+  "team-summary": {
+    "team_id": "t1-0000-0000-0000-000000000001",
+    "team_name": "ML Platform",
+    "start": "2025-02-03",
+    "end": "2025-03-04",
+    "runs": { "total": 1500, "prior_total": 1380, "delta_pct": 8.7 },
+    "spend": { "spend_usd": 12400, "prior_spend_usd": 11800, "delta_pct": 5.1 },
+    "success_rate": { "rate_pct": 96.8, "prior_rate_pct": 95.2, "delta_pp": 1.6 },
+    "active_users": { "count": 14, "prior_count": 12, "delta": 2 }
+  },
+  "team-top-agents": {
+    "agents": [
+      { "agent_type": "code-reviewer", "run_count": 520, "success_rate_pct": 98.1, "avg_duration_ms": 3200, "spend_usd": 1560.0 },
+      { "agent_type": "test-writer", "run_count": 380, "success_rate_pct": 95.5, "avg_duration_ms": 8400, "spend_usd": 2280.0 },
+      { "agent_type": "deep-analyzer", "run_count": 290, "success_rate_pct": 93.8, "avg_duration_ms": 15200, "spend_usd": 3480.0 }
+    ]
+  },
+  "team-user-activity": {
+    "users": [
+      { "user_id": "u1-t1", "user_name": "Alice Chen", "run_count": 320, "success_rate_pct": 97.5, "last_active": "2025-03-04T10:30:00Z" },
+      { "user_id": "u2-t1", "user_name": "Bob Martinez", "run_count": 245, "success_rate_pct": 96.3, "last_active": "2025-03-03T15:20:00Z" },
+      { "user_id": "u3-t1", "user_name": "Carla Johnson", "run_count": 180, "success_rate_pct": 98.1, "last_active": "2025-03-04T08:45:00Z" }
+    ]
+  }
+}

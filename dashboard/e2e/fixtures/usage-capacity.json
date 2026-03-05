@@ -1,0 +1,48 @@
+{
+  "active-users": {
+    "days": 30,
+    "active_users": 87,
+    "prior_active_users": 79,
+    "delta_users": 8,
+    "active_teams": 4,
+    "total_teams": 5
+  },
+  "concurrency-timeseries": {
+    "concurrency_limit": 30,
+    "peak_in_period": 28,
+    "daily": [
+      { "date": "2025-02-03", "peak_concurrent": 22 },
+      { "date": "2025-02-04", "peak_concurrent": 25 },
+      { "date": "2025-02-05", "peak_concurrent": 28 }
+    ]
+  },
+  "run-volume-by-team": {
+    "teams": [
+      { "team_id": "t1", "team_name": "ML Infra", "run_count": 4200 },
+      { "team_id": "t2", "team_name": "Data Eng", "run_count": 3100 },
+      { "team_id": "t3", "team_name": "Platform", "run_count": 2500 },
+      { "team_id": "t4", "team_name": "Security", "run_count": 1800 },
+      { "team_id": "t5", "team_name": "DevTools", "run_count": 900 }
+    ]
+  },
+  "run-heatmap": {
+    "cells": [
+      { "day_of_week": 0, "hour_of_day": 9, "run_count": 12 },
+      { "day_of_week": 1, "hour_of_day": 10, "run_count": 95 },
+      { "day_of_week": 2, "hour_of_day": 14, "run_count": 110 },
+      { "day_of_week": 5, "hour_of_day": 16, "run_count": 88 },
+      { "day_of_week": 6, "hour_of_day": 12, "run_count": 8 }
+    ]
+  },
+  "agent-adoption": {
+    "months": [
+      { "month": "2024-10", "new_count": 3, "new_types": ["code-reviewer", "deep-analyzer", "test-writer"] },
+      { "month": "2024-11", "new_count": 2, "new_types": ["security-scanner", "doc-generator"] },
+      { "month": "2024-12", "new_count": 1, "new_types": ["refactor-bot"] },
+      { "month": "2025-01", "new_count": 4, "new_types": ["migration-helper", "code-reviewer", "test-writer", "doc-generator"] },
+      { "month": "2025-02", "new_count": 2, "new_types": ["deep-analyzer", "security-scanner"] },
+      { "month": "2025-03", "new_count": 3, "new_types": ["test-writer", "refactor-bot", "migration-helper"] }
+    ],
+    "current_month": { "month": "2025-03", "new_count": 3, "new_types": ["test-writer", "refactor-bot", "migration-helper"] }
+  }
+}

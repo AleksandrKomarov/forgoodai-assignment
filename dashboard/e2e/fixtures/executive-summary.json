@@ -1,0 +1,99 @@
+{
+  "spend-kpi": {
+    "start": "2025-02-03",
+    "end": "2025-03-04",
+    "spend_usd": 47200,
+    "prior_spend_usd": 43500,
+    "delta_pct": 8.5,
+    "budget_usd": 50000,
+    "budget_utilization_pct": 94.4
+  },
+  "success-rate": {
+    "start": "2025-02-03",
+    "end": "2025-03-04",
+    "rate_pct": 96.3,
+    "completed": 12847,
+    "failed": 491,
+    "total": 13338,
+    "prior_rate_pct": 95.8,
+    "delta_pp": 0.5
+  },
+  "run-volume": {
+    "start": "2025-02-03",
+    "end": "2025-03-04",
+    "total_runs": 13338,
+    "prior_total_runs": 12100,
+    "delta_pct": 10.2,
+    "daily": [
+      { "date": "2025-02-03", "count": 450 },
+      { "date": "2025-02-04", "count": 480 },
+      { "date": "2025-02-05", "count": 410 }
+    ]
+  },
+  "budget-forecast": {
+    "month": "2025-03",
+    "days_elapsed": 4,
+    "days_in_month": 31,
+    "spent_so_far_usd": 6200,
+    "daily_run_rate_usd": 1550.0,
+    "forecast": {
+      "projected_usd": 48050,
+      "projected_over_budget_usd": 3050,
+      "projected_budget_pct": 106.8
+    },
+    "burn_rate": {
+      "budget_usd": 45000,
+      "burn_pct": 13.8,
+      "month_progress_pct": 12.9,
+      "on_track": false
+    }
+  },
+  "monthly-spend": {
+    "monthly_spend": [
+      { "period": "2024-03", "total_usd": 28500 },
+      { "period": "2024-04", "total_usd": 30200 },
+      { "period": "2024-05", "total_usd": 29800 },
+      { "period": "2024-06", "total_usd": 31500 },
+      { "period": "2024-07", "total_usd": 33100 },
+      { "period": "2024-08", "total_usd": 32400 },
+      { "period": "2024-09", "total_usd": 34200 },
+      { "period": "2024-10", "total_usd": 35800 },
+      { "period": "2024-11", "total_usd": 36100 },
+      { "period": "2024-12", "total_usd": 37500 },
+      { "period": "2025-01", "total_usd": 38200 },
+      { "period": "2025-02", "total_usd": 39100 }
+    ],
+    "monthly_spend_forecast": [
+      { "period": "2025-03", "projected_usd": 40200 },
+      { "period": "2025-04", "projected_usd": 41500 },
+      { "period": "2025-05", "projected_usd": 42800 }
+    ]
+  },
+  "top-cost-centers": {
+    "start": "2025-02-03",
+    "end": "2025-03-04",
+    "teams": [
+      {
+        "team_id": "a1b2c3d4-0001-0000-0000-000000000001",
+        "team_name": "ML Platform",
+        "spend_usd": 18500,
+        "run_count": 4200,
+        "delta_pct": 5.2
+      },
+      {
+        "team_id": "a1b2c3d4-0002-0000-0000-000000000001",
+        "team_name": "Data Engineering",
+        "spend_usd": 14200,
+        "run_count": 3800,
+        "delta_pct": -2.1
+      },
+      {
+        "team_id": "a1b2c3d4-0003-0000-0000-000000000001",
+        "team_name": "Backend Services",
+        "spend_usd": 9800,
+        "run_count": 2100,
+        "delta_pct": 12.7
+      }
+    ]
+  }
+}

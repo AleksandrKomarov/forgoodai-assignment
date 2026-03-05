@@ -230,3 +230,27 @@ The retry button calls the query's `refetch()`. Other widgets continue independe
 
 Background re-fetch while stale data exists. Show stale data as-is — no spinner. The UI
 updates seamlessly when fresh data arrives.
+
+---
+
+## Accessibility
+
+### Form Controls
+
+All `<select>` and `<input>` elements have an `aria-label` attribute for screen reader
+identification. Labels match the visible context label (e.g., "Date range", "Dimension", "Period").
+
+### Keyboard Navigation
+
+Sidebar links are standard `<a>` elements and fully tabbable. Focus order follows DOM order
+(sidebar links top-to-bottom, then main content).
+
+### Sidebar Toggle
+
+The hamburger button has `aria-label="Open menu"`. When the sidebar drawer opens on mobile,
+the hamburger hides to avoid focus confusion. Clicking the backdrop overlay closes the drawer.
+
+### Color & Contrast
+
+Delta indicators (green/red tags) use both color and a signed prefix (`+`/`-`) so meaning
+is not conveyed by color alone.

@@ -15,6 +15,7 @@ export default function FilterBar({
     <div className="filter-bar">
       <span className="label">Dimension:</span>
       <select
+        aria-label="Dimension"
         value={dimension}
         onChange={(e) => onDimensionChange(e.target.value as "team" | "agent_type")}
       >
@@ -23,6 +24,7 @@ export default function FilterBar({
       </select>
       <span className="label">Period:</span>
       <select
+        aria-label="Period"
         value={granularity}
         onChange={(e) => onGranularityChange(e.target.value as "daily" | "weekly" | "monthly")}
       >

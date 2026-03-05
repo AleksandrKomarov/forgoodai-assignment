@@ -1,0 +1,72 @@
+{
+  "daily-spend": {
+    "start": "2025-02-03",
+    "end": "2025-03-04",
+    "dimension": "team",
+    "granularity": "daily",
+    "series": [
+      {
+        "key": "team-0",
+        "label": "ML Platform",
+        "data": [
+          { "date": "2025-02-03", "spend_usd": 520 },
+          { "date": "2025-02-04", "spend_usd": 480 }
+        ]
+      },
+      {
+        "key": "team-1",
+        "label": "Data Engineering",
+        "data": [
+          { "date": "2025-02-03", "spend_usd": 380 },
+          { "date": "2025-02-04", "spend_usd": 410 }
+        ]
+      }
+    ]
+  },
+  "spend-breakdown": {
+    "start": "2025-02-03",
+    "end": "2025-03-04",
+    "total_usd": 47200,
+    "drivers": [
+      { "driver": "tokens", "spend_usd": 21240, "pct": 45.0 },
+      { "driver": "compute", "spend_usd": 12980, "pct": 27.5 },
+      { "driver": "storage", "spend_usd": 7080, "pct": 15.0 },
+      { "driver": "egress", "spend_usd": 4248, "pct": 9.0 },
+      { "driver": "other", "spend_usd": 1652, "pct": 3.5 }
+    ]
+  },
+  "team-cost-summary": {
+    "start": "2025-02-03",
+    "end": "2025-03-04",
+    "total_spend_usd": 47200,
+    "teams": [
+      {
+        "team_id": "t1-0000",
+        "team_name": "ML Platform",
+        "spend_usd": 18500,
+        "run_count": 4200,
+        "avg_cost_per_run": 4.4,
+        "delta_pct": 5.2,
+        "share_pct": 39.2
+      },
+      {
+        "team_id": "t2-0000",
+        "team_name": "Data Engineering",
+        "spend_usd": 14200,
+        "run_count": 3800,
+        "avg_cost_per_run": 3.74,
+        "delta_pct": -2.1,
+        "share_pct": 30.1
+      },
+      {
+        "team_id": "t3-0000",
+        "team_name": "Backend Services",
+        "spend_usd": 9800,
+        "run_count": 2100,
+        "avg_cost_per_run": 4.67,
+        "delta_pct": 12.7,
+        "share_pct": 20.8
+      }
+    ]
+  }
+}
